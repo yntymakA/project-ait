@@ -21,6 +21,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.db.base import Base
+import app.models.sql_models  # Ensures all models are attached to Base.metadata before setting target_metadata
 target_metadata = Base.metadata
 
 from app.core.config import settings
