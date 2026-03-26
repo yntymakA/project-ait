@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: marketplace_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-marketplace}
+      MYSQL_USER: ${DB_USER:-marketplace_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - custom_mysql_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: marketplace_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://${DB_USER:-marketplace_user}:${DB_PASSWORD:-password}@db:3306/${DB_NAME:-marketplace}
+      - APP_ENV=development
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+volumes:
+  custom_mysql_data:
