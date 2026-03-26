@@ -1,0 +1,33 @@
+from sqlalchemy.orm import Session
+from app.models.sql_models.user import User
+from app.schemas.user import UserBase, UserUpdate
+
+def get_user(db: Session, user_id: int) -> User | None:
+    return db.query(User).filter(User.id == user_id).first()
+
+def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User | None:
+    return db.query(User).filter(User.firebase_uid == firebase_uid).first()
+
+def get_user_by_email(db: Session, email: str) -> User | None:
+    return db.query(User).filter(User.email == email).first()
+
+def create_user(db: Session, firebase_uid: str, email: str, full_name: str, profile_image_url: str = None) -> User:
+    db_user = User(
+        firebase_uid=firebase_uid,
+        email=email,
+        full_name=full_name,
+        profile_image_url=profile_image_url
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def update_user(db: Session, db_user: User, update_data: UserUpdate) -> User:
+    update_dict = update_data.model_dump(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
