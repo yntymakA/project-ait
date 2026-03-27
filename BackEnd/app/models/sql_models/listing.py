@@ -17,7 +17,7 @@ class Listing(Base):
     city = Column(String(100), nullable=True)
     
     status = Column(Enum(ListingStatusEnum), default=ListingStatusEnum.draft, nullable=False)
-    moderation_status = Column(Enum(ModerationStatusEnum), default=ModerationStatusEnum.pending, nullable=False)
+    moderation_status = Column(Enum(ModerationStatusEnum), default=ModerationStatusEnum.pending, nullable=False)# when listing is created approval from admin 
     promotion_status = Column(Enum(PromotionStatusEnum), default=PromotionStatusEnum.none, nullable=False)
     
     view_count = Column(Integer, default=0, nullable=False)

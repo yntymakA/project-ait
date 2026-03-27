@@ -10,5 +10,5 @@ class Notification(Base):
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     type = Column(Enum(NotificationTypeEnum), nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
-    payload = Column(JSON, nullable=True)
+    payload = Column(JSON, nullable=True)#json form
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

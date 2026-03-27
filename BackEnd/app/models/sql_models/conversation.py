@@ -33,7 +33,7 @@ class Message(Base):
     sent_at = Column(DateTime, server_default=func.now(), nullable=False)
     deleted_at = Column(DateTime, nullable=True)
     
-    # Relationships
+    # Relationships dont' need null = True
     attachments = relationship("MessageAttachment", backref="message", cascade="all, delete-orphan")
 
 

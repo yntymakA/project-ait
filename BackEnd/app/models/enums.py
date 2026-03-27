@@ -1,15 +1,13 @@
 import enum
 
 class RoleEnum(str, enum.Enum):
-    user = "user"
-    moderator = "moderator"
+    guest = "guest"
+    authenticated_user = "authenticated_user"
     admin = "admin"
-    superadmin = "superadmin"
 
 class UserStatusEnum(str, enum.Enum):
     active = "active"
     blocked = "blocked"
-    pending_verification = "pending_verification"
     deleted = "deleted"
 
 class ListingStatusEnum(str, enum.Enum):
@@ -27,7 +25,7 @@ class ModerationStatusEnum(str, enum.Enum):
 
 class PromotionStatusEnum(str, enum.Enum):
     none = "none"
-    pending = "pending"
+    pending = "pending"#waiting for payment
     active = "active"
     expired = "expired"
     cancelled = "cancelled"
@@ -48,7 +46,7 @@ class ReportTargetTypeEnum(str, enum.Enum):
     message = "message"
 
 class ReportStatusEnum(str, enum.Enum):
-    open = "open"
+    open = "pending"
     resolved = "resolved"
     dismissed = "dismissed"
 
@@ -57,6 +55,9 @@ class TransactionTypeEnum(str, enum.Enum):
     spend = "spend"
 
 class PromotionTypeEnum(str, enum.Enum):
+    # Выделяется визуально на фронтенде (рамка, значок VIP)
     featured = "featured"
+    # Единоразово обновляется дата (прыгает на первую страницу, имитируя новое)
     boosted = "boosted"
+    # Физически в SQL (ORDER BY) закрепляется всегда выше обычных объявлений
     top_feed = "top_feed"
