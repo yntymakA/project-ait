@@ -165,12 +165,13 @@ app/
 | Column | Type | Notes |
 |---|---|---|
 | id | BIGINT PK | Auto-increment |
-| firebase_uid | VARCHAR(128) UNIQUE | Firebase User ID |
+| firebase_uid | VARCHAR(128) UNIQUE | Firebase User ID, nullable |
 | full_name | VARCHAR(255) | Required |
 | email | VARCHAR(255) UNIQUE | Required |
 | phone | VARCHAR(30) UNIQUE | Optional |
-| role | ENUM | `user`, `moderator`, `admin`, `superadmin` |
-| status | ENUM | `active`, `blocked`, `pending_verification`, `deleted` |
+| balance | DECIMAL(10,2) | Default 0.00 |
+| role | ENUM | `guest`, `authenticated_user`, `admin` |
+| status | ENUM | `active`, `blocked`, `deleted` |
 | profile_image_url | TEXT | |
 | bio | TEXT | |
 | city | VARCHAR(100) | |
@@ -282,25 +283,20 @@ app/
 | target_id | BIGINT | |
 | reason_code | VARCHAR(50) | `spam`, `scam`, `duplicate`, etc. |
 | reason_text | TEXT | |
-| status | ENUM | `open`, `resolved`, `dismissed` |
+| status | ENUM | `pending`, `resolved`, `dismissed` |
 | reviewed_by_admin_id | BIGINT FK | Nullable |
 | resolution_note | TEXT | |
 | created_at | DATETIME | |
 | reviewed_at | DATETIME | |
 
-### `payments`
+### `transactions`
 | Column | Type | Notes |
 |---|---|---|
 | id | BIGINT PK | |
 | user_id | BIGINT FK | |
-| listing_id | BIGINT FK | Nullable |
-| promotion_id | BIGINT FK | Nullable |
+| type | ENUM | `top_up`, `spend` |
 | amount | DECIMAL(12,2) | |
-| currency | VARCHAR(10) | |
-| status | ENUM | `pending`, `successful`, `failed`, `cancelled`, `refunded` |
-| payment_provider | VARCHAR(50) | |
-| provider_reference | VARCHAR(255) | |
-| paid_at | DATETIME | |
+| description | VARCHAR(255) | |
 | created_at | DATETIME | |
 
 ### `promotions`
@@ -316,6 +312,7 @@ app/
 | ends_at | DATETIME | |
 | status | ENUM | `pending`, `active`, `expired`, `cancelled` |
 | purchased_price | DECIMAL(12,2) | |
+| created_at | DATETIME | |
 
 ### `admin_audit_logs`
 | Column | Type | Notes |

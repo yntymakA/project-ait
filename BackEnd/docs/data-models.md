@@ -17,13 +17,13 @@ All tables use `BIGINT` primary keys (auto-increment) and `DATETIME` timestamps.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | BIGINT PK | Auto-increment |
-| `firebase_uid` | VARCHAR(128) UNIQUE | Firebase User ID |
+| `firebase_uid` | VARCHAR(128) UNIQUE | Firebase User ID, nullable |
 | `full_name` | VARCHAR(255) | Required |
 | `email` | VARCHAR(255) UNIQUE | Required |
 | `phone` | VARCHAR(30) UNIQUE | Optional |
-| `balance` | DECIMAL(12,2) | Default: 0.00 (Для симуляции пополнений) |
-| `role` | ENUM | `user`, `moderator`, `admin`, `superadmin` |
-| `status` | ENUM | `active`, `blocked`, `pending_verification`, `deleted` |
+| `balance` | DECIMAL(10,2) | Default: 0.00 (Для симуляции пополнений) |
+| `role` | ENUM | `guest`, `authenticated_user`, `admin` |
+| `status` | ENUM | `active`, `blocked`, `deleted` |
 | `profile_image_url` | TEXT | |
 | `bio` | TEXT | |
 | `city` | VARCHAR(100) | |
@@ -162,7 +162,7 @@ All tables use `BIGINT` primary keys (auto-increment) and `DATETIME` timestamps.
 | `target_id` | BIGINT | |
 | `reason_code` | VARCHAR(50) | `spam`, `scam`, `duplicate`, etc. |
 | `reason_text` | TEXT | |
-| `status` | ENUM | `open`, `resolved`, `dismissed` |
+| `status` | ENUM | `pending`, `resolved`, `dismissed` |
 | `reviewed_by_admin_id` | BIGINT FK | Nullable |
 | `resolution_note` | TEXT | |
 | `created_at` | DATETIME | |
@@ -197,6 +197,7 @@ All tables use `BIGINT` primary keys (auto-increment) and `DATETIME` timestamps.
 | `ends_at` | DATETIME | |
 | `status` | ENUM | `pending`, `active`, `expired`, `cancelled` |
 | `purchased_price` | DECIMAL(12,2) | |
+| `created_at` | DATETIME | |
 
 ---
 
@@ -262,10 +263,9 @@ class PaginatedResponse(BaseModel):
 
 | Role | Value | Permissions |
 |------|-------|-------------|
-| `user` | default | Browse, list, message, favorite, report |
-| `moderator` | elevated | Approve / reject listings |
+| `guest` | base | Unauthenticated guest/read-only access |
+| `authenticated_user` | default | Browse, list, message, favorite, report |
 | `admin` | admin | Full admin panel + user management |
-| `superadmin` | highest | Admin + platform configuration |
 
 ## User Statuses
 
@@ -273,7 +273,6 @@ class PaginatedResponse(BaseModel):
 |--------|---------|
 | `active` | Normal access |
 | `blocked` | Cannot authenticate |
-| `pending_verification` | Email not confirmed |
 | `deleted` | Soft-deleted account |
 
 ## Listing Statuses
