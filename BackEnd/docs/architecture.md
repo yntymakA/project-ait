@@ -42,6 +42,7 @@ app/
 │   ├── notification.py
 │   ├── payment.py
 │   ├── promotion.py
+│   ├── promotion_package.py
 │   └── ...
 ├── schemas/                 # Pydantic request/response schemas
 │   ├── user.py
@@ -154,7 +155,6 @@ async def list_listings(db: Session = Depends(get_db)):
 
 | Role | Access Level |
 |------|-------------|
-| `user` | Browse, list, message, favorite, report |
-| `moderator` | Approve / reject listings |
+| `guest` | Unauthenticated guest/read-only access |
+| `authenticated_user` | Browse, list, message, favorite, report |
 | `admin` | Full admin panel + user management |
-| `superadmin` | Admin + platform configuration |

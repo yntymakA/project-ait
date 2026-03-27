@@ -190,6 +190,7 @@ All tables use `BIGINT` primary keys (auto-increment) and `DATETIME` timestamps.
 | `id` | BIGINT PK | |
 | `listing_id` | BIGINT FK | |
 | `user_id` | BIGINT FK | |
+| `package_id` | INT FK | Nullable |
 | `promotion_type` | ENUM | `featured`, `boosted`, `top_feed` |
 | `target_city` | VARCHAR(100) | |
 | `target_category_id` | INT FK | |
@@ -198,6 +199,19 @@ All tables use `BIGINT` primary keys (auto-increment) and `DATETIME` timestamps.
 | `status` | ENUM | `pending`, `active`, `expired`, `cancelled` |
 | `purchased_price` | DECIMAL(12,2) | |
 | `created_at` | DATETIME | |
+
+---
+
+### `promotion_packages`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INT PK | Auto-increment |
+| `name` | VARCHAR(100) | |
+| `promotion_type` | ENUM | `featured`, `boosted`, `top_feed` |
+| `duration_days` | INT | |
+| `price` | DECIMAL(12,2) | |
+| `is_active` | BOOL | |
 
 ---
 

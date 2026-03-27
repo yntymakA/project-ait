@@ -38,6 +38,10 @@ class NotificationTypeEnum(str, enum.Enum):
     listing_approved = "listing_approved"
     new_message = "new_message"
     payment_success = "payment_success"
+    listing_rejected = 'listing rejected'
+    promotion_activated = 'promotion activated'
+    promotion_expired = 'promotion expired'
+
     # will add others dynamically or as string if needed
 
 class ReportTargetTypeEnum(str, enum.Enum):

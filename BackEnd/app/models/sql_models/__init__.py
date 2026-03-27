@@ -11,4 +11,5 @@ from .notification import Notification
 from .report import Report
 from .payment import Transaction
 from .promotion import Promotion
+from .promotion_package import PromotionPackage
 from .audit_log import AdminAuditLog

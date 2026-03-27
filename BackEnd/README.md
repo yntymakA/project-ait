@@ -82,6 +82,7 @@ app/
 │   ├── report.py
 │   ├── payment.py
 │   ├── promotion.py
+│   ├── promotion_package.py
 │   ├── audit_log.py
 │   └── enums.py
 ├── schemas/                 # Pydantic v2 request/response schemas
@@ -305,6 +306,7 @@ app/
 | id | BIGINT PK | |
 | listing_id | BIGINT FK | |
 | user_id | BIGINT FK | |
+| package_id | INT FK | Nullable |
 | promotion_type | ENUM | `featured`, `boosted`, `top_feed` |
 | target_city | VARCHAR(100) | |
 | target_category_id | INT FK | |
@@ -313,6 +315,16 @@ app/
 | status | ENUM | `pending`, `active`, `expired`, `cancelled` |
 | purchased_price | DECIMAL(12,2) | |
 | created_at | DATETIME | |
+
+### `promotion_packages`
+| Column | Type | Notes |
+|---|---|---|
+| id | INT PK | Auto-increment |
+| name | VARCHAR(100) | |
+| promotion_type | ENUM | `featured`, `boosted`, `top_feed` |
+| duration_days | INT | |
+| price | DECIMAL(12,2) | |
+| is_active | BOOL | |
 
 ### `admin_audit_logs`
 | Column | Type | Notes |
