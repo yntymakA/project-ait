@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, case
 from fastapi import HTTPException
 from app.models.sql_models.listing import Listing, ListingImage
-from app.models.enums import ModerationStatusEnum
+from app.models.sql_models.promotion import Promotion
+from app.models.enums import ModerationStatusEnum, PromotionStatusEnum, PromotionTypeEnum
 
 MAX_LISTING_IMAGES = 3
 
@@ -14,7 +15,16 @@ def create_listing(db: Session, owner_id: int, **kwargs) -> Listing:
     return listing
 
 def get_listing(db: Session, listing_id: int) -> Listing | None:
-    return db.query(Listing).filter(Listing.id == listing_id, Listing.deleted_at == None).first()
+    # joinedload(promotions) обязателен: без него SQLAlchemy не загружает
+    # связанные записи Promotion, и `Listing.active_promotions` всегда
+    # возвращает [] даже при наличии активных промоций.
+    # Это нужно фронту чтобы показывать VIP/featured значки на карточке.
+    return (
+        db.query(Listing)
+        .options(joinedload(Listing.promotions))
+        .filter(Listing.id == listing_id, Listing.deleted_at == None)
+        .first()
+    )
 
 def update_listing(db: Session, listing: Listing, update_data: dict) -> Listing:
     for key, value in update_data.items():
@@ -33,7 +43,25 @@ def count_listings(db: Session, moderation_status: ModerationStatusEnum = None) 
     return query.scalar() or 0
 
 def get_paginated_listings(db: Session, skip: int = 0, limit: int = 50) -> list[Listing]:
-    return db.query(Listing).filter(Listing.deleted_at == None).order_by(Listing.created_at.desc()).offset(skip).limit(limit).all()
+    """Return listings; top_feed-promoted ones always appear first."""
+    # Left-join to active top_feed promotions so we can sort on presence
+    is_active_top_feed = (
+        (Promotion.status == PromotionStatusEnum.active)
+        & (Promotion.promotion_type == PromotionTypeEnum.top_feed)
+    )
+    return (
+        db.query(Listing)
+        .outerjoin(Promotion, (Promotion.listing_id == Listing.id) & is_active_top_feed)
+        .filter(Listing.deleted_at == None)
+        .order_by(
+            # Promoted rows have a non-NULL Promotion.id → sort them first (DESC → True/1 first)
+            Promotion.id.isnot(None).desc(),
+            Listing.created_at.desc(),
+        )
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 def count_listing_images(db: Session, listing_id: int) -> int:
     return db.query(func.count(ListingImage.id)).filter(ListingImage.listing_id == listing_id).scalar() or 0

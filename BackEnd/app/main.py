@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.dependencies import get_db
-from app.routers import users, categories, listings, favorites, conversations, reports, admin_routes
+from app.routers import users, categories, listings, favorites, conversations, reports, admin_routes, payments, promotions
 from app.core.firebase import init_firebase
 
 @asynccontextmanager
@@ -26,6 +26,8 @@ app.include_router(favorites.router)
 app.include_router(conversations.router)
 app.include_router(reports.router)
 app.include_router(admin_routes.router, prefix="/admin")
+app.include_router(payments.router)
+app.include_router(promotions.router)
 
 @app.get("/")
 def read_root():

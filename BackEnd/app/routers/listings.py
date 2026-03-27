@@ -1,11 +1,21 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
 from app.services.listing import listing_service
 from app.models.sql_models.user import User
+from app.repositories import listing_repo
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
+
+@router.get("", response_model=list[ListingResponse])
+def get_listings(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    """Public listing feed. top_feed-promoted listings appear first."""
+    return listing_repo.get_paginated_listings(db, skip=offset, limit=limit)
 
 @router.post("", response_model=ListingResponse, status_code=status.HTTP_201_CREATED)
 def create_listing(
