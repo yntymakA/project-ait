@@ -35,3 +35,16 @@ class UserResponse(UserBase):
 class UserSyncResponse(UserResponse):
     """Response returned when syncing a firebase token"""
     pass
+
+
+class PublicUserResponse(BaseModel):
+    """Public profile — no email, phone, or firebase_uid exposed."""
+    id: int
+    full_name: str
+    profile_image_url: Optional[str] = None
+    city: Optional[str] = None
+    member_since: datetime
+    active_listing_count: int
+
+    class Config:
+        from_attributes = True

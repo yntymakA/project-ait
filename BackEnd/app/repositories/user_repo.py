@@ -39,3 +39,30 @@ def update_user(db: Session, db_user: User, update_data: UserUpdate) -> User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def count_active_listings(db: Session, user_id: int) -> int:
+    from app.models.sql_models.listing import Listing
+    from app.models.enums import ModerationStatusEnum
+    return (
+        db.query(func.count(Listing.id))
+        .filter(
+            Listing.owner_id == user_id,
+            Listing.moderation_status == ModerationStatusEnum.approved,
+            Listing.deleted_at == None,
+        )
+        .scalar() or 0
+    )
+
+
+def get_user_listings(db: Session, user_id: int, skip: int = 0, limit: int = 20):
+    from app.models.sql_models.listing import Listing
+    from app.models.enums import ModerationStatusEnum
+    query = db.query(Listing).filter(
+        Listing.owner_id == user_id,
+        Listing.moderation_status == ModerationStatusEnum.approved,
+        Listing.deleted_at == None,
+    )
+    total = query.count()
+    items = query.order_by(Listing.created_at.desc()).offset(skip).limit(limit).all()
+    return total, items
