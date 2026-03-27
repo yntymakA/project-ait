@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse, ListingImageResponse
-from app.services import listing_service, upload_service
+from app.services.listing import listing_service
+from app.services.storage import upload_service
 from app.models.sql_models.user import User
 
 router = APIRouter(prefix="/listings", tags=["Listings"])

@@ -5,7 +5,7 @@ from typing import Annotated
 from app.core.dependencies import get_db, get_current_user
 from app.core.security import get_current_firebase_uid
 from app.schemas.user import UserResponse, UserSyncResponse, UserUpdate
-from app.services import user_service
+from app.services.user import user_service
 from app.repositories import user_repo
 
 router = APIRouter(prefix="/users", tags=["Users"])
