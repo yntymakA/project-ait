@@ -21,7 +21,9 @@ def get_current_user(
     firebase_payload: Annotated[dict, Depends(get_current_firebase_uid)],
     db: Session = Depends(get_db)
 ):
-    """Dependency that returns the actual User DB model."""
+    """Dependency that returns the actual User DB model.
+        takes actual user from our db using u_id
+    """
     uid = firebase_payload.get("uid")
     user = user_repo.get_user_by_firebase_uid(db, uid)
     if not user:

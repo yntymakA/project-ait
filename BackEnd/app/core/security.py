@@ -11,6 +11,10 @@ security = HTTPBearer()
 def get_current_firebase_uid(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """
     Extracts Bearer token, verifies it with Firebase, and returns the token payload.
+     "uid": "abc123",
+    "email": "user@gmail.com",
+    "email_verified": True
+}
     """
     token = credentials.credentials
     try:

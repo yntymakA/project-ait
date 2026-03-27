@@ -18,6 +18,7 @@ def sync_user(
     """
     Syncs Firebase user with backend DB based on Bearer token.
     Call this immediately after client login/signup.
+    after successful login email and uid writes in db[jh]
     """
     try:
         user = user_service.sync_firebase_user(db, firebase_payload)
