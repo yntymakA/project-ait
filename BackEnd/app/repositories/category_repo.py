@@ -11,3 +11,13 @@ def get_active_categories(db: Session, parent_id: int | None = None) -> list[Cat
 
 def get_category_by_id(db: Session, category_id: int) -> Category | None:
     return db.query(Category).filter(Category.id == category_id, Category.is_active == True).first()
+
+def get_category_by_slug(db: Session, slug: str) -> Category | None:
+    return db.query(Category).filter(Category.slug == slug).first()
+
+def create_category(db: Session, category_data: dict) -> Category:
+    db_obj = Category(**category_data)
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj

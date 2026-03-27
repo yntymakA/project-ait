@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from app.core.dependencies import get_db
-from app.schemas.category import CategoryTreeResponse
+from app.core.dependencies import get_db, get_current_user
+from app.schemas.category import CategoryTreeResponse, CategoryBase, CategoryResponse
+from app.models.sql_models.user import User
 from app.services.category import category_service
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
@@ -13,3 +14,14 @@ def get_categories(db: Session = Depends(get_db)):
     Returns the active category tree.
     """
     return category_service.get_categories_tree(db)
+
+@router.post("", response_model=CategoryResponse, status_code=201)
+def create_category(
+    data: CategoryBase,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new category. Requires admin privileges.
+    """
+    return category_service.create_category(db, current_user, data)
