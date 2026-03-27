@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     FIREBASE_PROJECT_ID: str = ""
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
+    FIREBASE_STORAGE_BUCKET: Optional[str] = None
     SECRET_KEY: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

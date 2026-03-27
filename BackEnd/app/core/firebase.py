@@ -7,14 +7,15 @@ def init_firebase():
     Uses credentials from FIREBASE_CREDENTIALS_PATH.
     """
     if not firebase_admin._apps:
+        options = {'projectId': settings.FIREBASE_PROJECT_ID}
+        if settings.FIREBASE_STORAGE_BUCKET:
+            options['storageBucket'] = settings.FIREBASE_STORAGE_BUCKET
+
         if settings.FIREBASE_CREDENTIALS_PATH:
             cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-            firebase_admin.initialize_app(cred, {
-                'projectId': settings.FIREBASE_PROJECT_ID,
-            })
+            firebase_admin.initialize_app(cred, options)
         else:
-            # Fallback for dev environments if path isn't strictly set but default app credential works
-            firebase_admin.initialize_app(options={'projectId': settings.FIREBASE_PROJECT_ID})
+            firebase_admin.initialize_app(options=options)
 
 def verify_token(token: str) -> dict:
     """Verifies a Firebase ID token.
