@@ -2,8 +2,9 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models.sql_models.user import User
-from app.models.enums import TransactionTypeEnum
+from app.models.enums import TransactionTypeEnum, NotificationTypeEnum
 from app.repositories import payment_repo
+from app.services.notification import notification_service
 
 
 class TopUpRequest:
@@ -28,7 +29,16 @@ def top_up_balance(db: Session, current_user: User, amount: Decimal, payment_met
     )
     db.commit()
     db.refresh(txn)
+
+    # 🔔 Notify user about successful payment
+    notification_service.send_notification(
+        db, current_user.id,
+        NotificationTypeEnum.payment_success,
+        {"amount": str(amount), "message": f"Balance topped up by ${amount}"}
+    )
+
     return txn
+
 
 
 def get_transaction_history(db: Session, current_user: User, limit: int, offset: int):

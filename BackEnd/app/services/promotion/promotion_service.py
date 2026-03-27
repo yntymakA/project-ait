@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from typing import Optional
 from app.models.sql_models.user import User
-from app.models.enums import TransactionTypeEnum, PromotionTypeEnum
+from app.models.enums import TransactionTypeEnum, PromotionTypeEnum, NotificationTypeEnum
 from app.repositories import payment_repo, promotion_repo, listing_repo
+from app.services.notification import notification_service
 
 
 def get_available_packages(db: Session):
@@ -71,6 +72,14 @@ def purchase_promotion(
 
     db.commit()
     db.refresh(promo)
+
+    # 🔔 Notify user about promotion activation
+    notification_service.send_notification(
+        db, current_user.id,
+        NotificationTypeEnum.promotion_activated,
+        {"listing_id": listing.id, "package": package.name, "message": f"'{package.name}' activated for your listing"}
+    )
+
     return promo
 
 

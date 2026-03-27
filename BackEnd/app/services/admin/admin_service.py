@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories import user_repo, listing_repo, report_repo
-from app.models.enums import UserStatusEnum, ModerationStatusEnum, ReportStatusEnum
+from app.models.enums import UserStatusEnum, ModerationStatusEnum, ReportStatusEnum, NotificationTypeEnum
 from app.schemas.admin import UserModerationRequest, ListingModerationRequest, ReportResolutionRequest
+from app.services.notification import notification_service
 
 def get_dashboard_stats(db: Session):
     return {
@@ -31,6 +32,21 @@ def moderate_listing(db: Session, listing_id: int, request: ListingModerationReq
     listing.moderation_status = request.status
     db.commit()
     db.refresh(listing)
+
+    # 🔔 Notify listing owner about moderation decision
+    if request.status == ModerationStatusEnum.approved:
+        notification_service.send_notification(
+            db, listing.owner_id,
+            NotificationTypeEnum.listing_approved,
+            {"listing_id": listing.id, "title": listing.title, "message": f"Your listing '{listing.title}' has been approved!"}
+        )
+    elif request.status == ModerationStatusEnum.rejected:
+        notification_service.send_notification(
+            db, listing.owner_id,
+            NotificationTypeEnum.listing_rejected,
+            {"listing_id": listing.id, "title": listing.title, "message": f"Your listing '{listing.title}' was rejected"}
+        )
+
     return listing
 
 def resolve_report(db: Session, report_id: int, request: ReportResolutionRequest, admin_id: int):

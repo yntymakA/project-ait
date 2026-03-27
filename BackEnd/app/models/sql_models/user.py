@@ -18,6 +18,7 @@ class User(Base):
     bio = Column(Text, nullable=True)
     city = Column(String(100), nullable=True)
     preferred_language = Column(String(10), default="ru", nullable=True)
+    fcm_token = Column(String(255), nullable=True)  # Firebase Cloud Messaging device token for push notifications
     
     last_seen_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
