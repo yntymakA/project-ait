@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from fastapi import HTTPException
 from app.models.sql_models.listing import Listing, ListingImage
+
+MAX_LISTING_IMAGES = 3
 
 def create_listing(db: Session, owner_id: int, **kwargs) -> Listing:
     listing = Listing(owner_id=owner_id, **kwargs)
@@ -22,10 +25,18 @@ def update_listing(db: Session, listing: Listing, update_data: dict) -> Listing:
 def get_listings_by_owner(db: Session, owner_id: int, skip: int = 0, limit: int = 20) -> list[Listing]:
     return db.query(Listing).filter(Listing.owner_id == owner_id, Listing.deleted_at == None).offset(skip).limit(limit).all()
 
+def count_listing_images(db: Session, listing_id: int) -> int:
+    return db.query(func.count(ListingImage.id)).filter(ListingImage.listing_id == listing_id).scalar() or 0
+
 def add_listing_image(db: Session, listing_id: int, file_url: str, is_primary: bool = False) -> ListingImage:
-    # Find current max order index
-    max_order = db.query(func.max(ListingImage.order_index)).filter(ListingImage.listing_id == listing_id).scalar() or 0
-    next_order = max_order + 1
+    current_count = count_listing_images(db, listing_id)
+    if current_count >= MAX_LISTING_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A listing can have at most {MAX_LISTING_IMAGES} images."
+        )
+
+    next_order = current_count + 1
 
     img = ListingImage(
         listing_id=listing_id,

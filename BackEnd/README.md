@@ -219,10 +219,12 @@ app/
 |---|---|---|
 | id | BIGINT PK | |
 | listing_id | BIGINT FK | |
-| file_url | TEXT | |
-| is_primary | BOOL | |
-| order_index | INT | |
+| file_url | TEXT | Firebase Storage URL |
+| is_primary | BOOL | One per listing (cover photo) |
+| order_index | INT | 1–3 |
 | created_at | DATETIME | |
+
+> **Rule:** Each listing must have **exactly 3 images**, uploaded atomically at creation time. The first image (`order_index=1`) is automatically set as primary.
 
 ### `conversations`
 | Column | Type | Notes |
@@ -495,19 +497,39 @@ Browse/search listings. No auth required.
 ---
 
 #### `POST /listings` 🔐
-Create a new listing.
+Create a new listing. **Requires exactly 3 images** — all fields and photos are sent in a single `multipart/form-data` request.
 
-**Request:**
-```json
-{
-  "title": "3-bedroom house for sale",
-  "description": "Spacious house in a quiet district...",
-  "price": 120000.00,
-  "currency": "USD",
-  "city": "Bishkek",
-  "category_id": 5,
-  "is_negotiable": true
-}
+> Images are uploaded to Firebase Cloud Storage automatically. The first image becomes the primary/cover photo.
+
+**Request:** `Content-Type: multipart/form-data`
+
+| Field | Type | Notes |
+|---|---|---|
+| `title` | string | Required |
+| `description` | string | Required |
+| `price` | float | Required |
+| `currency` | string | Default: `USD` |
+| `city` | string | Required |
+| `category_id` | int | Required |
+| `is_negotiable` | bool | Default: `false` |
+| `image1` | file | Required — becomes primary/cover photo |
+| `image2` | file | Required |
+| `image3` | file | Required |
+
+**Example (curl):**
+```bash
+curl -X POST http://localhost:8000/listings \
+  -H "Authorization: Bearer <token>" \
+  -F "title=3-bedroom house for sale" \
+  -F "description=Spacious house in a quiet district..." \
+  -F "price=120000.00" \
+  -F "currency=USD" \
+  -F "city=Bishkek" \
+  -F "category_id=5" \
+  -F "is_negotiable=true" \
+  -F "image1=@/path/to/photo1.jpg" \
+  -F "image2=@/path/to/photo2.jpg" \
+  -F "image3=@/path/to/photo3.jpg"
 ```
 
 **Response `201`:**
@@ -515,48 +537,41 @@ Create a new listing.
 {
   "id": 102,
   "title": "3-bedroom house for sale",
-  "status": "pending_review",
+  "status": "draft",
+  "moderation_status": "pending",
   "owner_id": 1,
+  "images": [
+    { "id": 1, "file_url": "https://storage.googleapis.com/...", "is_primary": true,  "order_index": 1 },
+    { "id": 2, "file_url": "https://storage.googleapis.com/...", "is_primary": false, "order_index": 2 },
+    { "id": 3, "file_url": "https://storage.googleapis.com/...", "is_primary": false, "order_index": 3 }
+  ],
   "created_at": "2026-03-27T00:00:00Z"
 }
 ```
+
+**Error `400`:** `{ "detail": "Exactly 3 images are required to create a listing." }`
 
 ---
 
 #### `GET /listings/{id}`
 Get listing detail. No auth required.
 
-**Response `200`:** Full listing object with images, owner card, promotion status.
+**Response `200`:** Full listing object including all 3 images, owner card, and promotion status.
 
 ---
 
 #### `PATCH /listings/{id}` 🔐
-Update own listing. Owner or admin only.
+Update own listing fields (text only). Owner or admin only.
 
-**Request:** Any subset of listing fields.
+**Request:** Any subset of listing fields (JSON body). Does **not** update images.
 **Response `200`:** Updated listing object.
 
 ---
 
-#### `DELETE /listings/{id}` 🔐
-Soft-delete own listing.
+#### `PATCH /listings/{id}/images/{image_id}/primary` 🔐
+Change which of the 3 images is the primary/cover photo.
 
-**Response `204`:** No content.
-
----
-
-#### `POST /listing-media/{listing_id}` 🔐
-Upload images for a listing. Multipart, up to 10 images.
-
-**Request:** `Content-Type: multipart/form-data`, field: `files[]`
-**Response `201`:**
-```json
-{
-  "uploaded": [
-    { "id": 1, "file_url": "https://...", "is_primary": true }
-  ]
-}
-```
+**Response `200`:** `{ "message": "Primary image updated successfully" }`
 
 ---
 
