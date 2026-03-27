@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from fastapi import HTTPException
 from app.models.sql_models.listing import Listing, ListingImage
+from app.models.enums import ModerationStatusEnum
 
 MAX_LISTING_IMAGES = 3
 
@@ -24,6 +25,15 @@ def update_listing(db: Session, listing: Listing, update_data: dict) -> Listing:
 
 def get_listings_by_owner(db: Session, owner_id: int, skip: int = 0, limit: int = 20) -> list[Listing]:
     return db.query(Listing).filter(Listing.owner_id == owner_id, Listing.deleted_at == None).offset(skip).limit(limit).all()
+
+def count_listings(db: Session, moderation_status: ModerationStatusEnum = None) -> int:
+    query = db.query(func.count(Listing.id)).filter(Listing.deleted_at == None)
+    if moderation_status:
+        query = query.filter(Listing.moderation_status == moderation_status)
+    return query.scalar() or 0
+
+def get_paginated_listings(db: Session, skip: int = 0, limit: int = 50) -> list[Listing]:
+    return db.query(Listing).filter(Listing.deleted_at == None).order_by(Listing.created_at.desc()).offset(skip).limit(limit).all()
 
 def count_listing_images(db: Session, listing_id: int) -> int:
     return db.query(func.count(ListingImage.id)).filter(ListingImage.listing_id == listing_id).scalar() or 0

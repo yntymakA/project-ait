@@ -32,3 +32,14 @@ def get_current_user(
             detail="User not found in database. Please call /sync first."
         )
     return user
+
+from app.models.enums import RoleEnum
+
+def get_current_admin(current_user=Depends(get_current_user)):
+    """Dependency that enforces the user has the admin role."""
+    if current_user.role != RoleEnum.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user

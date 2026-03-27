@@ -1,9 +1,17 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.models.sql_models.user import User
 from app.schemas.user import UserBase, UserUpdate
+from app.models.enums import UserStatusEnum
 
 def get_user(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
+
+def count_users(db: Session, status: UserStatusEnum = None) -> int:
+    query = db.query(func.count(User.id))
+    if status:
+        query = query.filter(User.status == status)
+    return query.scalar() or 0
 
 def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User | None:
     return db.query(User).filter(User.firebase_uid == firebase_uid).first()
