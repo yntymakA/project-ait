@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Annotated
 
-from app.core.dependencies import get_db
+from app.core.dependencies import get_db, get_current_user
 from app.core.security import get_current_firebase_uid
 from app.schemas.user import UserResponse, UserSyncResponse, UserUpdate
 from app.services import user_service
@@ -24,20 +24,6 @@ def sync_user(
         return user
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-def get_current_user(
-    firebase_payload: Annotated[dict, Depends(get_current_firebase_uid)],
-    db: Session = Depends(get_db)
-):
-    """Dependency that returns the actual User DB model."""
-    uid = firebase_payload.get("uid")
-    user = user_repo.get_user_by_firebase_uid(db, uid)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="User not found in database. Please call /sync first."
-        )
-    return user
 
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user = Depends(get_current_user)):

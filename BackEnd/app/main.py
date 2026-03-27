@@ -1,17 +1,27 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.dependencies import get_db
-from app.routers import users
+from app.routers import users, categories, listings
+from app.core.firebase import init_firebase
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_firebase()
+    yield
 
 app = FastAPI(
     title="Marketplace API",
     description="Backend for Marketplace Platform",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.include_router(users.router)
+app.include_router(categories.router)
+app.include_router(listings.router)
 
 @app.get("/")
 def read_root():
