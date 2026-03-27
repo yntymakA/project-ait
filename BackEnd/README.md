@@ -109,19 +109,20 @@ app/
 │   ├── payment_repo.py
 │   ├── promotion_repo.py
 │   └── audit_log_repo.py
-├── services/                # Business logic layer
-│   ├── auth_service.py
-│   ├── user_service.py
-│   ├── listing_service.py
-│   ├── category_service.py
-│   ├── conversation_service.py
-│   ├── favorite_service.py
-│   ├── notification_service.py
-│   ├── report_service.py
-│   ├── payment_service.py
-│   ├── promotion_service.py
-│   ├── file_service.py
-│   └── admin_service.py
+├── services/                # Business logic layer (organized by domain folders)
+│   ├── auth/
+│   ├── user/
+│   ├── listing/
+│   ├── category/
+│   ├── conversation/
+│   ├── favorites/
+│   ├── notification/
+│   ├── report/
+│   ├── payment/
+│   ├── promotion/
+│   ├── file/
+│   ├── storage/
+│   └── admin/
 ├── routers/                 # FastAPI route handlers
 │   ├── auth.py
 │   ├── users.py

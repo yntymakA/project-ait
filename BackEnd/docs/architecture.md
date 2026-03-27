@@ -52,10 +52,10 @@ app/
 │   ├── user_repo.py
 │   ├── listing_repo.py
 │   └── ...
-├── services/                # Business logic layer
-│   ├── auth_service.py
-│   ├── listing_service.py
-│   ├── payment_service.py
+├── services/                # Business logic layer (organized by domain folders)
+│   ├── auth/
+│   ├── listing/
+│   ├── payment/
 │   └── ...
 ├── routers/                 # FastAPI route handlers
 │   ├── auth.py
@@ -108,7 +108,7 @@ FastAPI App (main.py)
 ### 1. Router → Service → Repository
 
 ```
-routers/listings.py  →  services/listing_service.py  →  repositories/listing_repo.py
+routers/listings.py  →  services/listing/listing_service.py  →  repositories/listing_repo.py
 ```
 
 ### 2. Request / Response with Pydantic
