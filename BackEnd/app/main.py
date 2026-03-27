@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.dependencies import get_db
-from app.routers import users, categories, listings
+from app.routers import users, categories, listings, favorites
 from app.core.firebase import init_firebase
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ app = FastAPI(
 app.include_router(users.router)
 app.include_router(categories.router)
 app.include_router(listings.router)
+app.include_router(favorites.router)
 
 @app.get("/")
 def read_root():
