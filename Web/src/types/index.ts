@@ -14,7 +14,8 @@ export interface User {
 export interface Listing {
   id: EntityId
   title: string
-  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'archived' | 'sold'
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'archived' | 'sold'
+  moderation_status: 'pending' | 'approved' | 'rejected'
   price: number
   currency: string
   updated_at: string

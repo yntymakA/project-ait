@@ -3,9 +3,9 @@ import styles from './ListingsStatusTabs.module.css'
 
 const tabs: { value: ListingsStatusFilter; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'published', label: 'Published' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'archived', label: 'Archived' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
 ]
 
 export interface ListingsStatusTabsProps {

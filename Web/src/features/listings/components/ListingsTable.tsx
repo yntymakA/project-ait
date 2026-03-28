@@ -19,7 +19,7 @@ export function ListingsTable({ rows, onModerate }: ListingsTableProps) {
         </div>
       )
     },
-    { id: 'status', header: 'Status', accessor: 'status' },
+    { id: 'moderation_status', header: 'Status', accessor: 'moderation_status' },
     {
       id: 'price',
       header: 'Price',
@@ -35,7 +35,7 @@ export function ListingsTable({ rows, onModerate }: ListingsTableProps) {
       header: 'Actions',
       cell: (row) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {row.status === 'pending_review' && (
+          {row.moderation_status === 'pending' && (
             <>
               <button
                 onClick={() => onModerate?.(row.id, 'approved')}

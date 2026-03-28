@@ -34,7 +34,7 @@ export function useListingsOverview() {
     }
   }
 
-  const filteredRows = status === 'all' ? rows : rows.filter((l) => l.status === status)
+  const filteredRows = status === 'all' ? rows : rows.filter((l) => l.moderation_status === status)
 
   return { status, setStatus, rows: filteredRows, isLoading, onModerate }
 }

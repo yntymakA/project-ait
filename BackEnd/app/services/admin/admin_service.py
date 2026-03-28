@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories import user_repo, listing_repo, report_repo
@@ -67,15 +68,37 @@ def resolve_report(db: Session, report_id: int, request: ReportResolutionRequest
 
 def get_listings_queue(db: Session, page: int = 1, page_size: int = 50):
     """Admin moderation queue — returns only pending listings with standard pagination."""
-    params = ListingSearchParams()
-    params.page = page
-    params.page_size = page_size
+    params = ListingSearchParams(
+        page=page,
+        page_size=page_size,
+        q=None,
+        category_id=None,
+        city=None,
+        min_price=None,
+        max_price=None,
+        sort="newest"
+    )
     params.status = ModerationStatusEnum.pending
-
     total, items = search_service.search_listings(db, params)
     return create_paginated_response(items, total, page, page_size)
 def get_all_users(db: Session, page: int = 1, page_size: int = 50):
     """Admin users list — returns all users with standard pagination."""
     skip = (page - 1) * page_size
     total, items = user_repo.get_users_list(db, skip=skip, limit=page_size)
+    return create_paginated_response(items, total, page, page_size)
+def get_all_listings(db: Session, status: Optional[ModerationStatusEnum] = None, page: int = 1, page_size: int = 50):
+    """Admin listings list — returns all listings with optional status filtering and standard pagination."""
+    params = ListingSearchParams(
+        page=page,
+        page_size=page_size,
+        q=None,
+        category_id=None,
+        city=None,
+        min_price=None,
+        max_price=None,
+        sort="newest"
+    )
+    params.status = status
+
+    total, items = search_service.search_listings(db, params)
     return create_paginated_response(items, total, page, page_size)

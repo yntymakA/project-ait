@@ -22,9 +22,9 @@ export function useDashboardOverview() {
       if (mounted) {
         setData({
           metrics: [
-            { label: 'Active Users', value: overview.summary.activeUsers.toLocaleString(), change: '+0%' },
-            { label: 'Published Listings', value: overview.summary.publishedListings.toLocaleString(), change: '+0%' },
-            { label: 'Open Reports', value: overview.summary.reportsThisMonth.toLocaleString(), variant: 'danger' },
+            { id: 'active_users', label: 'Active Users', value: overview.summary.activeUsers.toLocaleString(), change: '+0%' },
+            { id: 'published_listings', label: 'Published Listings', value: overview.summary.publishedListings.toLocaleString(), change: '+0%' },
+            { id: 'open_reports', label: 'Open Reports', value: overview.summary.reportsThisMonth.toLocaleString(), variant: 'danger' },
           ],
           recentReports: overview.recentReports,
           recentListings: overview.recentListings,
