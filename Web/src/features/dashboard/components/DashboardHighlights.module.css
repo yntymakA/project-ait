@@ -1,0 +1,21 @@
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.list li + li {
+  margin-top: 0.35rem;
+}
+
+.emphasis {
+  color: var(--color-text);
+  font-weight: 600;
+}

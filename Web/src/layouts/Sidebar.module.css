@@ -1,0 +1,40 @@
+.aside {
+  grid-area: sidebar;
+  background: #101218;
+  color: #e8eaef;
+  border-right: 1px solid #1f2430;
+  padding: 0.85rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.navLabel {
+  padding: 0.65rem 1.15rem 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7b8293;
+}
+
+.link {
+  display: block;
+  padding: 0.55rem 1.15rem;
+  margin: 0 0.5rem;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 550;
+  transition: background 0.12s ease;
+}
+
+.link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.linkActive {
+  background: rgba(37, 99, 235, 0.22);
+  color: #fff;
+}
