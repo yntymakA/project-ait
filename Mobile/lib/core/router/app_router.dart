@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import 'main_shell.dart';
 import '../../features/listings/presentation/feed_screen.dart';
+import '../../features/listings/presentation/listing_detail_screen.dart';
+import '../../features/listings/data/models/listing.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/create/presentation/create_screen.dart';
 import '../../features/conversations/presentation/inbox_screen.dart';
@@ -59,6 +61,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    
+    // Listing Details (Root level to hide bottom nav)
+    GoRoute(
+      path: '/listing/:id',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final idStr = state.pathParameters['id']!;
+        final id = int.tryParse(idStr) ?? 0;
+        final listing = state.extra as Listing?;
+        return ListingDetailScreen(listingId: id, listing: listing);
+      },
     ),
     
     // Main App Shell

@@ -108,7 +108,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             imageUrl: primaryImage,
                             isPromoted: listing.promotionStatus == 'ACTIVE',
                             onTap: () {
-                              context.push('/listing/${listing.id}');
+                              context.push('/listing/${listing.id}', extra: listing);
                             },
                           ),
                         );

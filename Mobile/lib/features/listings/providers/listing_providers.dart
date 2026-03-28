@@ -7,6 +7,10 @@ final listingRepositoryProvider = Provider<ListingRepository>((ref) {
   return ListingRepository();
 });
 
+final listingDetailProvider = FutureProvider.family<Listing, int>((ref, id) async {
+  return ref.read(listingRepositoryProvider).getListingById(id);
+});
+
 // --- State Class ---
 class FeedState {
   final List<Listing> listings;
