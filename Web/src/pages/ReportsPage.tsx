@@ -3,17 +3,21 @@ import { ReportsDataTable, ReportsToolbar, useReportsTableState } from '@/featur
 import styles from './PageSection.module.css'
 
 export function ReportsPage() {
-  const { state, setState, rows } = useReportsTableState()
+  const { state, setState, rows, isLoading } = useReportsTableState()
 
   return (
     <Card
       title="Reports catalog"
-      subtitle="Placeholder data — connect reportsService.list for live results"
+      subtitle={isLoading ? 'Loading reports...' : `Viewing ${rows.length} reports from the database`}
       padding="none"
     >
       <div className={styles.section}>
         <ReportsToolbar state={state} onChange={setState} />
-        <ReportsDataTable rows={rows} />
+        {isLoading ? (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading reports data...</div>
+        ) : (
+          <ReportsDataTable rows={rows} />
+        )}
       </div>
     </Card>
   )

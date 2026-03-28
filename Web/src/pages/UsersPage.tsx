@@ -3,17 +3,17 @@ import { UsersDirectoryTable, UsersFilterBar, useUsersDirectory } from '@/featur
 import styles from './PageSection.module.css'
 
 export function UsersPage() {
-  const { role, setRole, rows } = useUsersDirectory()
+  const { role, setRole, rows, isLoading } = useUsersDirectory()
 
   return (
-    <Card
-      title="Users"
-      subtitle="Directory preview — replace with usersService.list"
-      padding="none"
-    >
+    <Card title="Users" padding="none">
       <div className={styles.section}>
         <UsersFilterBar role={role} onRoleChange={setRole} />
-        <UsersDirectoryTable rows={rows} />
+        {isLoading ? (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading user directory...</div>
+        ) : (
+          <UsersDirectoryTable rows={rows} />
+        )}
       </div>
     </Card>
   )

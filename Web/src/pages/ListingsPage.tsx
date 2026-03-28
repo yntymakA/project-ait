@@ -3,17 +3,21 @@ import { ListingsStatusTabs, ListingsTable, useListingsOverview } from '@/featur
 import styles from './PageSection.module.css'
 
 export function ListingsPage() {
-  const { status, setStatus, rows } = useListingsOverview()
+  const { status, setStatus, rows, isLoading } = useListingsOverview()
 
   return (
     <Card
       title="Listings"
-      subtitle="Inventory preview — replace with listingsService.list"
+      subtitle={isLoading ? 'Loading listings...' : `Total listings: ${rows.length}`}
       padding="none"
     >
       <div className={styles.section}>
         <ListingsStatusTabs status={status} onChange={setStatus} />
-        <ListingsTable rows={rows} />
+        {isLoading ? (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading listings inventory...</div>
+        ) : (
+          <ListingsTable rows={rows} />
+        )}
       </div>
     </Card>
   )

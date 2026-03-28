@@ -1,4 +1,5 @@
 import type { Listing, Report, User } from '@/types'
+import { apiFetch } from '../api'
 
 export interface DashboardSummary {
   activeUsers: number
@@ -13,8 +14,27 @@ export interface DashboardOverviewPayload {
   sampleUsers: User[]
 }
 
+interface AdminStatsResponse {
+  total_users: number
+  active_users: number
+  total_listings: number
+  pending_listings: number
+  open_reports: number
+}
+
 export const dashboardService = {
   async getOverview(): Promise<DashboardOverviewPayload> {
-    throw new Error('dashboardService.getOverview is not implemented')
+    const stats = await apiFetch<AdminStatsResponse>('/admin/stats')
+    
+    return {
+      summary: {
+        activeUsers: stats.active_users,
+        publishedListings: stats.total_listings,
+        reportsThisMonth: stats.open_reports, // Mapping open_reports to reportsThisMonth for now
+      },
+      recentReports: [],
+      recentListings: [],
+      sampleUsers: [],
+    }
   },
 }

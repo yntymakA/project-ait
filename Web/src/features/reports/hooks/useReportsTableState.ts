@@ -1,29 +1,32 @@
-import { useMemo, useState } from 'react'
-import type { ReportsSort, ReportsTableState } from '../types'
-import { PLACEHOLDER_REPORTS } from '../constants/placeholderReports'
+import { useEffect, useState } from 'react'
+import type { ReportsTableState } from '../types'
 import type { Report } from '@/types'
+import { reportsService } from '@/services/reports/reportsService'
 
-function compareReports(a: Report, b: Report, sort: ReportsSort, order: 'asc' | 'desc') {
-  const dir = order === 'asc' ? 1 : -1
-  if (sort === 'name') {
-    return a.name.localeCompare(b.name) * dir
-  }
-  return (new Date(a.generatedAt).getTime() - new Date(b.generatedAt).getTime()) * dir
-}
-
-/**
- * Client-side placeholder sorting. Replace with `reportsService.list` + server sort params.
- */
 export function useReportsTableState() {
   const [state, setState] = useState<ReportsTableState>({
     sort: 'generatedAt',
     order: 'desc',
   })
+  const [rows, setRows] = useState<Report[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const rows = useMemo(
-    () => [...PLACEHOLDER_REPORTS].sort((a, b) => compareReports(a, b, state.sort, state.order)),
-    [state.order, state.sort],
-  )
+  useEffect(() => {
+    let mounted = true
+    setIsLoading(true)
+    reportsService.list().then((items) => {
+      if (mounted) {
+        setRows(items)
+        setIsLoading(false)
+      }
+    }).catch(err => {
+      console.error('Failed to fetch reports:', err)
+      if (mounted) {
+        setIsLoading(false)
+      }
+    })
+    return () => { mounted = false }
+  }, [])
 
-  return { state, setState, rows }
+  return { state, setState, rows, isLoading }
 }
