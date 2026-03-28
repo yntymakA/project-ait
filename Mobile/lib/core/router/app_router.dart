@@ -12,6 +12,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
+import '../../features/notifications/presentation/notification_list_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_provider.dart';
 
@@ -73,6 +74,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         final listing = state.extra as Listing?;
         return ListingDetailScreen(listingId: id, listing: listing);
       },
+    ),
+    
+    // Notifications Screen
+    GoRoute(
+      path: '/notifications',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const NotificationListScreen(),
     ),
     
     // Main App Shell

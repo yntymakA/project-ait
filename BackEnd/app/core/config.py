@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     FIREBASE_STORAGE_BUCKET: Optional[str] = None
     SECRET_KEY: str = ""
     # Comma-separated origins for the admin web app (e.g. http://localhost:5173)
-    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
+    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
