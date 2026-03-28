@@ -8,8 +8,8 @@ Dio _setupDio() {
   final dio = Dio(
     BaseOptions(
       baseUrl: Env.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       contentType: 'application/json',
     ),
   );
@@ -23,7 +23,7 @@ Dio _setupDio() {
           try {
             final idToken = await user.getIdToken(false);
             if (idToken != null) {
-              options.headers['Authorization'] = 'Bearer \$idToken';
+              options.headers['Authorization'] = 'Bearer $idToken';
             }
           } catch (e) {
             // Ignore token fetch errors here

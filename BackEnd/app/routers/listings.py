@@ -44,8 +44,8 @@ def create_listing(
     is_negotiable: bool = Form(False),
     # 1 to 3 images
     image1: UploadFile = File(..., description="First image (will be set as primary/cover)"),
-    image2: Optional[UploadFile] = File(None, description="Second image"),
-    image3: Optional[UploadFile] = File(None, description="Third image"),
+    image2: UploadFile | None = None,
+    image3: UploadFile | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

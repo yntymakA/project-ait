@@ -23,6 +23,6 @@ def get_current_firebase_uid(credentials: HTTPAuthorizationCredentials = Depends
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Coult not validate credentials",
+            detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
