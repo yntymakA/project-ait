@@ -15,13 +15,8 @@ def create_listing(db: Session, owner_id: int, **kwargs) -> Listing:
     return listing
 
 def get_listing(db: Session, listing_id: int) -> Listing | None:
-    # joinedload(promotions) обязателен: без него SQLAlchemy не загружает
-    # связанные записи Promotion, и `Listing.active_promotions` всегда
-    # возвращает [] даже при наличии активных промоций.
-    # Это нужно фронту чтобы показывать VIP/featured значки на карточке.
     return (
         db.query(Listing)
-        .options(joinedload(Listing.promotions))
         .filter(Listing.id == listing_id, Listing.deleted_at == None)
         .first()
     )
