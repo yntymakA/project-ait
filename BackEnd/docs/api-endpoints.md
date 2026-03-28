@@ -1,8 +1,9 @@
 # API Endpoints Reference
 
-> **Base URL:** `http://localhost:8000`  
-> Full interactive docs: [`/docs`](http://localhost:8000/docs) (Swagger UI) · [`/redoc`](http://localhost:8000/redoc)  
+> **Base URL:** `http://localhost:8000/api/v1`  
+> Full interactive docs: [`/docs`](http://localhost:8000/api/v1/docs) (Swagger UI) · [`/redoc`](http://localhost:8000/api/v1/redoc)  
 > 🔐 = Requires `Authorization: Bearer <firebase_id_token>`
+> 🌍 = Localization Supported. Send `Accept-Language` header (`en` or `ru`).
 
 ---
 
@@ -13,10 +14,9 @@
 | `POST` | `/users/sync` | 🔐 | Sync a newly created Firebase user to the local DB |
 | `GET` | `/users/me` | 🔐 | Get own profile |
 | `PATCH` | `/users/me` | 🔐 | Update own profile |
-| `POST` | `/users/me/balance/top-up` | 🔐 | Top up virtual balance (for academic demo) |
 | `POST` | `/users/me/avatar` | 🔐 | Upload profile image (multipart) |
-| `GET` | `/public/users/{user_id}` | ❌ | Public owner profile |
-| `GET` | `/public/users/{user_id}/listings` | ❌ | Owner's active listings (paginated) |
+| `GET` | `/users/public/{user_id}` | ❌ | Public owner profile |
+| `GET` | `/users/public/{user_id}/listings` | ❌ | Owner's active listings (paginated) |
 
 ---
 
@@ -25,11 +25,10 @@
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/listings` | ❌ | Browse / search listings |
-| `POST` | `/listings` | 🔐 | Create a new listing |
+| `POST` | `/listings` | 🔐 | Create a new listing (includes exactly 3 multipart images `image1`, `image2`, `image3`) |
 | `GET` | `/listings/{id}` | ❌ | Get listing detail |
-| `PATCH` | `/listings/{id}` | 🔐 | Update own listing |
-| `DELETE` | `/listings/{id}` | 🔐 | Soft-delete own listing |
-| `POST` | `/listing-media/{listing_id}` | 🔐 | Upload images (multipart, up to 10) |
+| `PATCH` | `/listings/{id}` | 🔐 | Update own listing (text fields only) |
+| `PATCH` | `/listings/{listing_id}/images/{image_id}/primary` | 🔐 | Set one of the images as primary |
 
 ### `GET /listings` Query Params
 
@@ -72,7 +71,9 @@
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/notifications` | 🔐 | List user's notifications |
-| `PATCH` | `/notifications/{id}/read` | 🔐 | Mark notification as read |
+| `PATCH` | `/notifications/read-all` | 🔐 | Mark all notifications as read |
+| `PATCH` | `/notifications/{notification_id}/read` | 🔐 | Mark a specific notification as read |
+| `POST` | `/notifications/device-token` | 🔐 | Register FCM device token for push |
 
 ---
 
@@ -81,14 +82,16 @@
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `POST` | `/reports` | 🔐 | Submit a report (listing / user / message) |
+| `GET` | `/reports/my` | 🔐 | Get your submitted reports (paginated) |
 
 ---
 
-## Transactions (History)
+## Payments — `/payments`
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/transactions` | 🔐 | User's balance history (top-ups, spends) |
+| `POST` | `/payments/top-up` | 🔐 | Add testing funds to user balance |
+| `GET` | `/payments/history` | 🔐 | View transaction history |
 
 ---
 
@@ -114,18 +117,8 @@
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/admin/dashboard` | Platform stats & KPIs |
-| `GET` | `/admin/users` | Search / list all users |
-| `GET` | `/admin/users/{id}` | User detail with listings, payments |
-| `PATCH` | `/admin/users/{id}/suspend` | Suspend a user |
-| `PATCH` | `/admin/users/{id}/unsuspend` | Unsuspend a user |
-| `GET` | `/admin/listings` | All listings with filters |
-| `PATCH` | `/admin/listings/{id}/approve` | Approve a listing |
-| `PATCH` | `/admin/listings/{id}/reject` | Reject a listing with note |
-| `GET` | `/admin/reports` | Reports queue |
-| `PATCH` | `/admin/reports/{id}/resolve` | Resolve or dismiss a report |
-| `GET` | `/admin/transactions` | All platform transactions |
-| `GET` | `/admin/promotions` | All promotions |
-| `GET` | `/admin/audit-logs` | Admin action audit trail |
-| `POST` | `/admin/categories` | Create category |
-| `PATCH` | `/admin/categories/{id}` | Update category |
+| `GET` | `/admin/stats` | Platform stats & KPIs |
+| `GET` | `/admin/reports` | Get reports queue |
+| `PATCH` | `/admin/reports/{report_id}/status` | Change report status (`resolved` or `dismissed`) |
+| `PATCH` | `/admin/users/{user_id}/status` | Change user status (e.g. `suspended` or `active`) |
+| `PATCH` | `/admin/listings/{listing_id}/moderation` | Approve or reject a listing by ID |
