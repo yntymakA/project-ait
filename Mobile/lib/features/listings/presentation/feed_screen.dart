@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/listing_providers.dart';
+import '../providers/feed_filters_provider.dart';
+import 'widgets/feed_search_bar.dart';
 import '../../favorites/providers/favorite_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -57,72 +59,80 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           data: (state) {
             final listings = state.listings;
 
-            if (listings.isEmpty) {
-              return _buildEmptyState();
-            }
-
             return CustomScrollView(
               controller: _scrollController,
               slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.md,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index == listings.length) {
-                          // Bottom Loading Indicator
-                          if (state.isLoadingMore) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
-                          // Reached End of List
-                          if (!state.hasMore) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                              child: Text(
-                                "You've caught up! No more listings.",
-                                textAlign: TextAlign.center,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textDisabled,
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
-
-                        final listing = listings[index];
-                        final primaryImage = listing.images.isNotEmpty 
-                            ? listing.images.firstWhere((img) => img.isPrimary, orElse: () => listing.images.first).fileUrl 
-                            : null;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: ListingCard(
-                            title: listing.title,
-                            price: '${listing.price} ${listing.currency}',
-                            city: listing.city,
-                            imageUrl: primaryImage,
-                            isPromoted: listing.promotionStatus == 'ACTIVE',
-                            isFavorited: favoriteIds.contains(listing.id),
-                            onFavoriteTap: () {
-                              ref.read(favoriteIdsProvider.notifier).toggleFavorite(listing.id);
-                            },
-                            onTap: () {
-                              context.push('/listing/${listing.id}', extra: listing);
-                            },
-                          ),
-                        );
-                      },
-                      childCount: listings.length + 1, // +1 for the loading/end indicator
-                    ),
+                const SliverSafeArea(
+                  bottom: false,
+                  sliver: SliverToBoxAdapter(
+                    child: FeedSearchBar(),
                   ),
                 ),
+                if (listings.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.md,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index == listings.length) {
+                            // Bottom Loading Indicator
+                            if (state.isLoadingMore) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                                child: Center(child: CircularProgressIndicator()),
+                              );
+                            }
+                            // Reached End of List
+                            if (!state.hasMore) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                                child: Text(
+                                  "You've caught up! No more listings.",
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.textDisabled,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }
+
+                          final listing = listings[index];
+                          final primaryImage = listing.images.isNotEmpty 
+                              ? listing.images.firstWhere((img) => img.isPrimary, orElse: () => listing.images.first).fileUrl 
+                              : null;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                            child: ListingCard(
+                              title: listing.title,
+                              price: '${listing.price} ${listing.currency}',
+                              city: listing.city,
+                              imageUrl: primaryImage,
+                              isPromoted: listing.promotionStatus == 'ACTIVE',
+                              isFavorited: favoriteIds.contains(listing.id),
+                              onFavoriteTap: () {
+                                ref.read(favoriteIdsProvider.notifier).toggleFavorite(listing.id);
+                              },
+                              onTap: () {
+                                context.push('/listing/${listing.id}', extra: listing);
+                              },
+                            ),
+                          );
+                        },
+                        childCount: listings.length + 1, // +1 for the loading/end indicator
+                      ),
+                    ),
+                  ),
               ],
             );
           },
@@ -152,12 +162,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Check back later or try adjusting filters.',
+            'Try adjusting your filters or search.',
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.grey400,
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
+          AppButton(
+            label: 'Clear Filters',
+            isFullWidth: false,
+            onPressed: () {
+              ref.read(feedFiltersProvider.notifier).clearFilters();
+            },
+          ),
+          const SizedBox(height: AppSpacing.sm),
           AppButton.outlined(
             label: 'Refresh',
             isFullWidth: false,

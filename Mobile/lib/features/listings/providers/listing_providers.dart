@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/listing.dart';
 import '../data/repositories/listing_repository.dart';
+import 'feed_filters_provider.dart';
 
 // --- Repository ---
 final listingRepositoryProvider = Provider<ListingRepository>((ref) {
@@ -48,11 +49,21 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
 
   @override
   Future<FeedState> build() async {
-    return _fetchInitialPage();
+    final filters = ref.watch(feedFiltersProvider);
+    return _fetchInitialPage(filters);
   }
 
-  Future<FeedState> _fetchInitialPage() async {
-    final response = await _repository.getListings(page: 1, pageSize: _pageSize);
+  Future<FeedState> _fetchInitialPage(FeedFilters filters) async {
+    final response = await _repository.getListings(
+      page: 1, 
+      pageSize: _pageSize,
+      query: filters.query,
+      categoryId: filters.categoryId,
+      city: filters.city,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      sort: filters.sort,
+    );
     
     return FeedState(
       listings: response.items,
@@ -64,7 +75,7 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchInitialPage());
+    state = await AsyncValue.guard(() => _fetchInitialPage(ref.read(feedFiltersProvider)));
   }
 
   Future<void> loadMore() async {
@@ -77,7 +88,17 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
 
     try {
       final nextPage = currentState.currentPage + 1;
-      final response = await _repository.getListings(page: nextPage, pageSize: _pageSize);
+      final filters = ref.read(feedFiltersProvider);
+      final response = await _repository.getListings(
+        page: nextPage, 
+        pageSize: _pageSize,
+        query: filters.query,
+        categoryId: filters.categoryId,
+        city: filters.city,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        sort: filters.sort,
+      );
 
       state = AsyncValue.data(
         FeedState(
