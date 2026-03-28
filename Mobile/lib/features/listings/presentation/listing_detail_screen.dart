@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../data/models/listing.dart';
 import '../providers/listing_providers.dart';
+import '../../favorites/providers/favorite_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -77,6 +78,9 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     final images = List<ListingImage>.from(listing.images)
       ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
+    final favoriteIds = ref.watch(favoriteIdsProvider);
+    final isFavorited = favoriteIds.contains(listing.id);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -102,9 +106,12 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                 child: CircleAvatar(
                   backgroundColor: AppColors.blackWithOpacity(0.4),
                   child: IconButton(
-                    icon: const Icon(Icons.favorite_border, color: Colors.white),
+                    icon: Icon(
+                      isFavorited ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorited ? AppColors.error : Colors.white,
+                    ),
                     onPressed: () {
-                      // Favorite toggle logic here
+                      ref.read(favoriteIdsProvider.notifier).toggleFavorite(listing.id);
                     },
                   ),
                 ),

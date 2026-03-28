@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/listing_providers.dart';
+import '../../favorites/providers/favorite_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -45,6 +46,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     final feedStateAsync = ref.watch(feedListingsProvider);
+    final favoriteIds = ref.watch(favoriteIdsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -107,6 +109,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             city: listing.city,
                             imageUrl: primaryImage,
                             isPromoted: listing.promotionStatus == 'ACTIVE',
+                            isFavorited: favoriteIds.contains(listing.id),
+                            onFavoriteTap: () {
+                              ref.read(favoriteIdsProvider.notifier).toggleFavorite(listing.id);
+                            },
                             onTap: () {
                               context.push('/listing/${listing.id}', extra: listing);
                             },
