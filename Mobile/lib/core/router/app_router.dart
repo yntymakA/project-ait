@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import 'main_shell.dart';
 import '../../features/listings/presentation/feed_screen.dart';
-import '../../features/search/presentation/search_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
+import '../../features/create/presentation/create_screen.dart';
 import '../../features/conversations/presentation/inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -19,9 +19,9 @@ final routerProvider = Provider<GoRouter>((ref) {
   // (e.g., on login/logout), new keys are generated, avoiding the "Multiple widgets used the same GlobalKey" error.
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'HomeTab');
-  final shellNavigatorSearchKey = GlobalKey<NavigatorState>(debugLabel: 'SearchTab');
   final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'FavTab');
-  final shellNavigatorInboxKey = GlobalKey<NavigatorState>(debugLabel: 'InboxTab');
+  final shellNavigatorCreateKey = GlobalKey<NavigatorState>(debugLabel: 'CreateTab');
+  final shellNavigatorChatsKey = GlobalKey<NavigatorState>(debugLabel: 'ChatsTab');
   final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'ProfileTab');
 
   return GoRouter(
@@ -32,6 +32,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loggingIn = state.uri.toString() == '/login' || state.uri.toString() == '/register';
 
       final requiresAuth = state.uri.toString().startsWith('/inbox') ||
+                           state.uri.toString().startsWith('/create') ||
                            state.uri.toString().startsWith('/favorites');
 
       if (requiresAuth && !loggedIn) {
@@ -71,17 +72,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ],
         ),
-        // Tab 2: Search
-        StatefulShellBranch(
-          navigatorKey: shellNavigatorSearchKey,
-          routes: [
-            GoRoute(
-              path: '/search',
-              builder: (context, state) => const SearchScreen(),
-            ),
-          ],
-        ),
-        // Tab 3: Favorites
+        // Tab 2: Favorites
         StatefulShellBranch(
           navigatorKey: shellNavigatorFavoritesKey,
           routes: [
@@ -91,9 +82,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ],
         ),
-        // Tab 4: Inbox
+        // Tab 3: Create
         StatefulShellBranch(
-          navigatorKey: shellNavigatorInboxKey,
+          navigatorKey: shellNavigatorCreateKey,
+          routes: [
+            GoRoute(
+              path: '/create',
+              builder: (context, state) => const CreateScreen(),
+            ),
+          ],
+        ),
+        // Tab 4: Chats
+        StatefulShellBranch(
+          navigatorKey: shellNavigatorChatsKey,
           routes: [
             GoRoute(
               path: '/inbox',
