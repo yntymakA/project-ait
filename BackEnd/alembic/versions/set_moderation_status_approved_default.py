@@ -9,8 +9,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'set_moderation_status_approved_default'
-down_revision = '8a938cc8765f_update_models'
+revision = 'ab12cd34ef56'
+down_revision = '955fc1bcb626'
 branch_labels = None
 depends_on = None
 
