@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../../core/auth/auth_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -16,27 +21,46 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 24),
         children: [
           // Header: Avatar & Name
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.deepPurple.shade100,
-                  child: const Icon(Icons.person, size: 50, color: Colors.deepPurple),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'John Doe',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'john.doe@example.com',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
+          if (user != null)
+            Center(
+              child: Column(
+                children: [
+                   CircleAvatar(
+                     radius: 50,
+                     backgroundColor: Colors.deepPurple.shade100,
+                     child: Text(
+                       user.email?.substring(0, 1).toUpperCase() ?? 'U',
+                       style: const TextStyle(fontSize: 40, color: Colors.deepPurple),
+                     ),
+                   ),
+                   const SizedBox(height: 16),
+                   Text(
+                     user.displayName ?? 'User',
+                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                   ),
+                   const SizedBox(height: 4),
+                   Text(
+                     user.email ?? '',
+                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                   ),
+                ],
+              ),
+            )
+          else
+            Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.account_circle, size: 100, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('Вы не авторизованы', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.push('/login'),
+                    child: const Text('Войти / Зарегистрироваться'),
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 32),
           
           // Options List
@@ -72,18 +96,21 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 32),
           
           // Logout Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Log Out', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+          if (user != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  ref.read(loginProvider.notifier).logout();
+                },
+                icon: const Icon(Icons.logout, color: Colors.red),
+                label: const Text('Log Out', style: TextStyle(color: Colors.red)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

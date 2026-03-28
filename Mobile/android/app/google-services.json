@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "653789648946",
+    "project_id": "marketplace-ait",
+    "storage_bucket": "marketplace-ait.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653789648946:android:6dc981669c95fafcef442b",
+        "android_client_info": {
+          "package_name": "com.ait.marketplace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "653789648946-pgen29pjnqcl2tmpm7q3fd3bg8ipkcp9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsMDum2onsk2KuF6C_Xbc1K6VDH429UF0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "653789648946-pgen29pjnqcl2tmpm7q3fd3bg8ipkcp9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "653789648946-jos4jgtr69nhq4ukni2e53e0aj5c9vk2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ait.marketplace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
