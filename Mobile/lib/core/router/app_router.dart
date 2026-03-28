@@ -7,6 +7,8 @@ import '../../features/search/presentation/search_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/conversations/presentation/inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/register_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'HomeTab');
@@ -19,7 +21,17 @@ final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/feed',
   routes: [
-    StatefulShellRoute.indexedStack(
+    // Auth Routes
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
+    ),
+    
+    // Main App Shell
       builder: (context, state, navigationShell) {
         return MainShell(navigationShell: navigationShell);
       },
