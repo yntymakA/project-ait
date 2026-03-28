@@ -36,6 +36,11 @@ Dio _setupDio() {
       },
       onError: (DioException e, handler) {
         // Global error logging
+        print('DIO ERROR [${e.response?.statusCode}]: ${e.requestOptions.uri}');
+        print('MESSAGE: ${e.message}');
+        if (e.response != null) {
+          print('DATA: ${e.response?.data}');
+        }
         return handler.next(e);
       },
     ),
