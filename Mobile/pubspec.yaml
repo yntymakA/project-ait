@@ -49,6 +49,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   google_sign_in: ^6.2.1
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
