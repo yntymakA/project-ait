@@ -2,20 +2,34 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
+from app.schemas.pagination import PaginatedResponse, create_paginated_response
+from app.schemas.search import ListingSearchParams
 from app.services.listing import listing_service
+from app.services.search import search_service
 from app.models.sql_models.user import User
+from app.models.enums import ModerationStatusEnum
 from app.repositories import listing_repo
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 
-@router.get("", response_model=list[ListingResponse])
+
+@router.get("", response_model=PaginatedResponse[ListingResponse])
 def get_listings(
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db)
+    params: ListingSearchParams = Depends(),
+    db: Session = Depends(get_db),
 ):
-    """Public listing feed. top_feed-promoted listings appear first."""
-    return listing_repo.get_paginated_listings(db, skip=offset, limit=limit)
+    """
+    Public listing feed with search, filters, pricing, sorting, and pagination.
+    top_feed-promoted listings always appear first.
+    Filters: category, city, min price, max price.
+    Sorting: newest, oldest, price_asc, price_desc.
+    """
+    # Public feed only shows approved listings
+    params.status = ModerationStatusEnum.approved
+
+    total, items = search_service.search_listings(db, params)
+    return create_paginated_response(items, total, params.page, params.page_size)
+
 
 @router.post("", response_model=ListingResponse, status_code=status.HTTP_201_CREATED)
 def create_listing(
@@ -47,10 +61,12 @@ def create_listing(
     files = [image1, image2, image3]
     return listing_service.create_listing(db, current_user, data, files)
 
+
 @router.get("/{listing_id}", response_model=ListingResponse)
 def get_listing(listing_id: int, db: Session = Depends(get_db)):
     """Retrieve full details for a listing by ID."""
     return listing_service.get_listing(db, listing_id)
+
 
 @router.patch("/{listing_id}", response_model=ListingResponse)
 def update_listing(
@@ -61,6 +77,7 @@ def update_listing(
 ):
     """Update details of an owned listing."""
     return listing_service.update_listing(db, listing_id, current_user, data)
+
 
 @router.patch("/{listing_id}/images/{image_id}/primary")
 def set_primary_image(

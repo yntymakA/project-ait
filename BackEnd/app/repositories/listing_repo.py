@@ -42,26 +42,80 @@ def count_listings(db: Session, moderation_status: ModerationStatusEnum = None) 
         query = query.filter(Listing.moderation_status == moderation_status)
     return query.scalar() or 0
 
-def get_paginated_listings(db: Session, skip: int = 0, limit: int = 50) -> list[Listing]:
-    """Return listings; top_feed-promoted ones always appear first."""
-    # Left-join to active top_feed promotions so we can sort on presence
-    is_active_top_feed = (
-        (Promotion.status == PromotionStatusEnum.active)
-        & (Promotion.promotion_type == PromotionTypeEnum.top_feed)
+def get_paginated_listings(
+    db: Session,
+    page: int = 1,
+    page_size: int = 50,
+    q: str | None = None,
+    category_id: int | None = None,
+    city: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    status: ModerationStatusEnum | None = None,
+    sort: str = "newest",
+) -> tuple[int, list[Listing]]:
+    """
+    Public listing feed with filters, search, and sorting.
+    top_feed-promoted listings always appear first regardless of sort.
+    Returns (total_count, items) for paginated response.
+    """
+    # Subquery: does this listing have an active top_feed promotion?
+    has_top_feed = (
+        db.query(Promotion.listing_id)
+        .filter(
+            Promotion.status == PromotionStatusEnum.active,
+            Promotion.promotion_type == PromotionTypeEnum.top_feed,
+        )
+        .subquery()
     )
-    return (
+
+    is_promoted = Listing.id.in_(has_top_feed)
+
+    query = (
         db.query(Listing)
-        .outerjoin(Promotion, (Promotion.listing_id == Listing.id) & is_active_top_feed)
         .filter(Listing.deleted_at == None)
-        .order_by(
-            # Promoted rows have a non-NULL Promotion.id → sort them first (DESC → True/1 first)
-            Promotion.id.isnot(None).desc(),
-            Listing.created_at.desc(),
+    )
+
+    # ── Filters ───────────────────────────────────────────
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter((Listing.title.ilike(pattern)) | (Listing.description.ilike(pattern)))
+    if category_id is not None:
+        query = query.filter(Listing.category_id == category_id)
+    if city:
+        query = query.filter(Listing.city.ilike(f"%{city}%"))
+    if min_price is not None:
+        query = query.filter(Listing.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Listing.price <= max_price)
+    if status is not None:
+        query = query.filter(Listing.moderation_status == status)
+
+    # ── Total count (before pagination) ────────────────────
+    total = query.count()
+
+    # ── Sorting (promoted always first) ────────────────────
+    sort_options = {
+        "newest": Listing.created_at.desc(),
+        "oldest": Listing.created_at.asc(),
+        "price_asc": Listing.price.asc(),
+        "price_desc": Listing.price.desc(),
+    }
+    secondary_sort = sort_options.get(sort, Listing.created_at.desc())
+
+    # ── Pagination ─────────────────────────────────────────
+    skip = (page - 1) * page_size
+    items = (
+        query.order_by(
+            case((is_promoted, 1), else_=0).desc(),  # promoted first
+            secondary_sort,
         )
         .offset(skip)
-        .limit(limit)
+        .limit(page_size)
         .all()
     )
+
+    return total, items
 
 def count_listing_images(db: Session, listing_id: int) -> int:
     return db.query(func.count(ListingImage.id)).filter(ListingImage.listing_id == listing_id).scalar() or 0
