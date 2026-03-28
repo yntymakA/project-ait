@@ -5,10 +5,18 @@ from app.models.sql_models.user import User
 from app.schemas.user import UserResponse
 from app.schemas.listing import ListingResponse
 from app.schemas.report import ReportListResponse, ReportResponse
-from app.schemas.admin import AdminDashboardStats, UserModerationRequest, ListingModerationRequest, ReportResolutionRequest
+from app.models.enums import (
+    UserStatusEnum, ModerationStatusEnum, ReportStatusEnum,
+)
+from app.schemas.admin import (
+    AdminDashboardStats, UserModerationRequest, ListingModerationRequest, 
+    ReportResolutionRequest
+)
+from app.schemas.search import ListingSearchParams
+from app.schemas.pagination import PaginatedResponse, create_paginated_response
 from app.services.admin import admin_service
+from app.services.search import search_service
 from app.services.reports import report_service
-from app.models.enums import ReportStatusEnum
 from typing import Optional
 
 router = APIRouter(tags=["Admin"])
@@ -64,3 +72,34 @@ def moderate_listing_status(
 ):
     """Approve or reject a listing."""
     return admin_service.moderate_listing(db, listing_id, data)
+
+@router.get("/users", response_model=PaginatedResponse[UserResponse])
+def get_all_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Get all users for the admin directory."""
+    return admin_service.get_all_users(db, page, page_size)
+
+@router.get("/listings/queue", response_model=PaginatedResponse[ListingResponse])
+def get_moderation_queue(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Get listings pending moderation."""
+    return admin_service.get_listings_queue(db, page, page_size)
+
+@router.get("/listings", response_model=PaginatedResponse[ListingResponse])
+def get_all_listings(
+    status: Optional[ModerationStatusEnum] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Get all listings for the admin directory with optional status filter."""
+    return admin_service.get_all_listings(db, status, page, page_size)

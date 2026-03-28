@@ -28,5 +28,16 @@ export function useReportsTableState() {
     return () => { mounted = false }
   }, [])
 
-  return { state, setState, rows, isLoading }
+  const onResolve = async (id: string, status: 'resolved' | 'dismissed', note?: string) => {
+    try {
+      await reportsService.resolveReport(id, status, note)
+      // Update local state to reflect the change
+      setRows(prev => prev.map(r => r.id === id ? { ...r, status } : r))
+    } catch (err) {
+      console.error('Failed to resolve report:', err)
+      alert('Failed to update report status')
+    }
+  }
+
+  return { state, setState, rows, isLoading, onResolve }
 }

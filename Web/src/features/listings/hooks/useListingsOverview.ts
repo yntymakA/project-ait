@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { Listing } from '@/types'
 import { listingsService } from '@/services/listings/listingsService'
 import type { ListingsStatusFilter } from '../types'
-import { PLACEHOLDER_LISTINGS } from '../constants/placeholderListings'
 
 export function useListingsOverview() {
   const [status, setStatus] = useState<ListingsStatusFilter>('all')
@@ -12,22 +11,30 @@ export function useListingsOverview() {
   useEffect(() => {
     let mounted = true
     setIsLoading(true)
-    listingsService.list().then((items) => {
+    listingsService.list().then((response) => {
       if (mounted) {
-        setRows(items.length > 0 ? items : PLACEHOLDER_LISTINGS) // Fallback to placeholder if empty
+        setRows(response.items)
         setIsLoading(false)
       }
     }).catch(err => {
       console.error('Failed to fetch listings:', err)
-      if (mounted) {
-        setRows(PLACEHOLDER_LISTINGS)
-        setIsLoading(false)
-      }
+      if (mounted) setIsLoading(false)
     })
     return () => { mounted = false }
   }, [])
 
+  const onModerate = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      await listingsService.moderateListing(id, status)
+      // Update local state to reflect the change
+      setRows(prev => prev.map(l => l.id === id ? { ...l, status } : l))
+    } catch (err) {
+      console.error('Failed to moderate listing:', err)
+      alert('Failed to update listing status')
+    }
+  }
+
   const filteredRows = status === 'all' ? rows : rows.filter((l) => l.status === status)
 
-  return { status, setStatus, rows: filteredRows, isLoading }
+  return { status, setStatus, rows: filteredRows, isLoading, onModerate }
 }

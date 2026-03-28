@@ -4,7 +4,7 @@ import styles from './UsersFilterBar.module.css'
 const options: { value: UsersRoleFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'admin', label: 'Admins' },
-  { value: 'member', label: 'Members' },
+  { value: 'authenticated_user', label: 'Users' },
 ]
 
 export interface UsersFilterBarProps {

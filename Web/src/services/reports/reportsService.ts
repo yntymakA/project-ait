@@ -26,21 +26,29 @@ export const reportsService = {
     
     const response = await apiFetch<ReportsResponse>(path)
     
-    // Map backend response to frontend Report type if necessary
+    // Map backend response to real Report type
     return response.items.map(item => ({
       id: item.id.toString(),
-      name: `Report #${item.id} - ${item.reason_code}`,
-      generatedAt: item.created_at,
-      format: 'pdf', // Placeholder as required by the Report type in types/index.ts
       status: item.status,
-      reason: item.reason_text,
-      targetType: item.target_type,
-      targetId: item.target_id,
-    })) as any
+      reason_code: item.reason_code,
+      reason_text: item.reason_text,
+      target_type: item.target_type,
+      target_id: item.target_id.toString(),
+      reporter_user_id: item.reporter_user_id,
+      created_at: item.created_at,
+      resolution_note: item.resolution_note,
+    })) as Report[]
   },
 
   async getById(id: string): Promise<Report | null> {
     const reports = await this.list({ limit: 100 })
     return reports.find(r => r.id === id) || null
+  },
+
+  async resolveReport(id: string, status: 'resolved' | 'dismissed', resolutionNote?: string): Promise<Report> {
+    return apiFetch<Report>(`/admin/reports/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, resolution_note: resolutionNote }),
+    })
   },
 }

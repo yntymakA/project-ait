@@ -66,3 +66,8 @@ def get_user_listings(db: Session, user_id: int, skip: int = 0, limit: int = 20)
     total = query.count()
     items = query.order_by(Listing.created_at.desc()).offset(skip).limit(limit).all()
     return total, items
+def get_users_list(db: Session, skip: int = 0, limit: int = 20):
+    query = db.query(User)
+    total = query.count()
+    items = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+    return total, items

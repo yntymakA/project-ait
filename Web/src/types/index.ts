@@ -5,25 +5,32 @@ export type EntityId = string
 export interface User {
   id: EntityId
   email: string
-  displayName: string
-  role: 'admin' | 'member'
-  createdAt: string
+  full_name: string
+  role: 'admin' | 'authenticated_user' | 'guest'
+  status: 'active' | 'blocked' | 'deleted'
+  created_at: string
 }
 
 export interface Listing {
   id: EntityId
   title: string
-  status: 'draft' | 'published' | 'archived'
+  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'archived' | 'sold'
   price: number
   currency: string
-  updatedAt: string
+  updated_at: string
+  owner_id?: string
 }
 
 export interface Report {
   id: EntityId
-  name: string
-  generatedAt: string
-  format: 'pdf' | 'csv' | 'xlsx'
+  status: 'pending' | 'resolved' | 'dismissed'
+  reason_code: string
+  reason_text?: string
+  target_type: 'listing' | 'user' | 'message'
+  target_id: string
+  reporter_user_id: number
+  created_at: string
+  resolution_note?: string
 }
 
 export type ReportSortKey = 'name' | 'generatedAt'

@@ -10,17 +10,17 @@ export const usersService = {
     return apiFetch<User>('/users/me', { method: 'GET' })
   },
 
-  async list(_params?: ListUsersParams): Promise<User[]> {
-    // The backend doesn't seem to have a specific admin list users endpoint yet.
-    // For now, I'll return empty or throw to be safe, or use the public search if available.
-    return apiFetch<User[]>('/admin/users', { method: 'GET' })
+  async list(page = 1, pageSize = 50): Promise<{ items: User[], total: number }> {
+    return apiFetch<{ items: User[], total: number }>(`/admin/users?page=${page}&page_size=${pageSize}`, { 
+      method: 'GET' 
+    })
   },
 
   async getById(id: string): Promise<User> {
     return apiFetch<User>(`/admin/users/${id}`, { method: 'GET' })
   },
 
-  async moderateUser(id: string, status: 'active' | 'suspended' | 'banned'): Promise<User> {
+  async moderateUser(id: string, status: 'active' | 'blocked' | 'deleted'): Promise<User> {
     return apiFetch<User>(`/admin/users/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),

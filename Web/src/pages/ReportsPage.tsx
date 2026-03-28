@@ -3,7 +3,7 @@ import { ReportsDataTable, ReportsToolbar, useReportsTableState } from '@/featur
 import styles from './PageSection.module.css'
 
 export function ReportsPage() {
-  const { state, setState, rows, isLoading } = useReportsTableState()
+  const { state, setState, rows, isLoading, onResolve } = useReportsTableState()
 
   return (
     <Card
@@ -16,7 +16,7 @@ export function ReportsPage() {
         {isLoading ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>Loading reports data...</div>
         ) : (
-          <ReportsDataTable rows={rows} />
+          <ReportsDataTable rows={rows} onResolve={onResolve} />
         )}
       </div>
     </Card>

@@ -3,7 +3,7 @@ import { UsersDirectoryTable, UsersFilterBar, useUsersDirectory } from '@/featur
 import styles from './PageSection.module.css'
 
 export function UsersPage() {
-  const { role, setRole, rows, isLoading } = useUsersDirectory()
+  const { role, setRole, rows, isLoading, onModerate } = useUsersDirectory()
 
   return (
     <Card title="Users" padding="none">
@@ -12,7 +12,7 @@ export function UsersPage() {
         {isLoading ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>Loading user directory...</div>
         ) : (
-          <UsersDirectoryTable rows={rows} />
+          <UsersDirectoryTable rows={rows} onModerate={onModerate} />
         )}
       </div>
     </Card>

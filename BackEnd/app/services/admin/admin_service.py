@@ -74,3 +74,8 @@ def get_listings_queue(db: Session, page: int = 1, page_size: int = 50):
 
     total, items = search_service.search_listings(db, params)
     return create_paginated_response(items, total, page, page_size)
+def get_all_users(db: Session, page: int = 1, page_size: int = 50):
+    """Admin users list — returns all users with standard pagination."""
+    skip = (page - 1) * page_size
+    total, items = user_repo.get_users_list(db, skip=skip, limit=page_size)
+    return create_paginated_response(items, total, page, page_size)
