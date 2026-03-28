@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -23,7 +24,7 @@ class LoginNotifier extends Notifier<AuthState> {
       throw Exception('Firebase is not configured! Please run flutterfire configure.');
     }
   }
-  // NOTE: If testing on web/iOS, this might require explicit clientId configuration from your Backend.
+
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<void> login(String email, String password) async {
@@ -57,19 +58,28 @@ class LoginNotifier extends Notifier<AuthState> {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        state = const AuthState(isLoading: false); // User cancelled
+        state = const AuthState(isLoading: false);
         return;
       }
-      
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
       final cred = await _auth.signInWithCredential(credential);
       await _syncWithBackend(cred.user);
-      
+      state = const AuthState(isLoading: false);
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(error: e.message ?? e.code, isLoading: false);
+    } catch (e) {
+      state = AuthState(error: e.toString(), isLoading: false);
+    }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    state = const AuthState(isLoading: true);
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
       state = const AuthState(isLoading: false);
     } on FirebaseAuthException catch (e) {
       state = AuthState(error: e.message ?? e.code, isLoading: false);
@@ -83,18 +93,14 @@ class LoginNotifier extends Notifier<AuthState> {
     await _auth.signOut();
   }
 
-  // Synchronize the logged-in Firebase User with the Custom FastAPI Backend
   Future<void> _syncWithBackend(User? user) async {
     if (user == null) return;
     try {
-      // The Dio AuthInterceptor automatically attaches the \`Authorization: Bearer <ID_TOKEN>\` header.
-      // So this request inherently passes the Firebase validity check on the backend!
       await dioClient.post('/users/sync');
     } catch (e) {
-      // If the backend fails to sync, it might log a DioException.
-      // We print it here, but typically you might want to sign them back out if sync is mandatory.
-      print('Backend user sync failed: \$e');
-      // For strict domains: throw Exception('Failed to synchronize user account');
+      debugPrint('Backend user sync failed: $e');
     }
   }
 }
+
+
