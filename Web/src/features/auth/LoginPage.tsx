@@ -32,10 +32,13 @@ export function LoginPage() {
     profileStatus,
     profileError,
     signInWithGoogle,
+    signInWithEmail,
     retryProfile,
     signOutUser,
   } = useAuth()
 
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [signInError, setSignInError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -46,6 +49,19 @@ export function LoginPage() {
     setBusy(true)
     try {
       await signInWithGoogle()
+    } catch (e) {
+      setSignInError(e instanceof Error ? e.message : 'Sign-in failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onEmailSignIn(e: React.FormEvent) {
+    e.preventDefault()
+    setSignInError(null)
+    setBusy(true)
+    try {
+      await signInWithEmail(email, password)
     } catch (e) {
       setSignInError(e instanceof Error ? e.message : 'Sign-in failed')
     } finally {
@@ -84,7 +100,7 @@ export function LoginPage() {
       <div className={styles.card}>
         <h1 className={styles.h1}>Admin sign-in</h1>
         <p className={styles.sub}>
-          Use the Google account that has the <strong>admin</strong> role in the database.
+          Use the account that has the <strong>admin</strong> role in the database.
         </p>
 
         {signInError != null ? <p className={styles.error}>{signInError}</p> : null}
@@ -102,17 +118,52 @@ export function LoginPage() {
             </button>
           </div>
         ) : (
-          <button type="button" className={styles.googleBtn} onClick={() => void onGoogle()} disabled={busy}>
-            {googleIcon}
-            {busy ? 'Continue with Google…' : 'Continue with Google'}
-          </button>
+          <>
+            <form onSubmit={onEmailSignIn} className={styles.emailForm}>
+              <div className={styles.field}>
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={busy}
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={busy}
+                />
+              </div>
+              <button type="submit" className={styles.signInBtn} disabled={busy}>
+                {busy ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+
+            <div className={styles.divider}>
+              <span>or</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.googleBtn}
+              onClick={() => void onGoogle()}
+              disabled={busy}
+            >
+              {googleIcon}
+              {busy ? 'Continue with Google…' : 'Continue with Google'}
+            </button>
+          </>
         )}
 
-        <p className={styles.note}>
-          If the API returns an error, check that the backend is running at{' '}
-          <code>{import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'}</code> and CORS includes this
-          origin.
-        </p>
+       
       </div>
     </div>
   )

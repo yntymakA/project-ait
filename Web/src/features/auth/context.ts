@@ -11,6 +11,8 @@ export type AuthContextValue = {
   profileStatus: ProfileStatus
   profileError: string | null
   signInWithGoogle: () => Promise<void>
+  signInWithEmail: (email: string, pass: string) => Promise<void>
+  signUpWithEmail: (email: string, pass: string) => Promise<void>
   signOutUser: () => Promise<void>
   retryProfile: () => Promise<void>
 }

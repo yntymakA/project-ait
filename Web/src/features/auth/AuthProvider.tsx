@@ -1,111 +1,116 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { User as FirebaseUser } from 'firebase/auth'
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { useEffect, useState, useCallback, type ReactNode } from 'react'
+import {
+  type User as FirebaseUser,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth'
+import { AuthContext, type AuthContextValue } from './context'
 import { getFirebaseAuth } from '@/services/firebase/client'
 import {
   configureApiTokenProvider,
-  getCurrentApiUser,
   syncUserFromFirebase,
+  getCurrentApiUser,
   type ApiUser,
 } from '@/services/api'
-import { AuthContext } from './context'
 
-const googleProvider = new GoogleAuthProvider()
-
-async function loadBackendProfile(): Promise<ApiUser> {
-  await syncUserFromFirebase()
-  return getCurrentApiUser()
+interface AuthProviderProps {
+  children: ReactNode
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useMemo(() => getFirebaseAuth(), [])
-
+export function AuthProvider({ children }: AuthProviderProps) {
   const [firebaseReady, setFirebaseReady] = useState(false)
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [appUser, setAppUser] = useState<ApiUser | null>(null)
-  const [profileStatus, setProfileStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error'
-  >('idle')
+  const [profileStatus, setProfileStatus] = useState<AuthContextValue['profileStatus']>('idle')
   const [profileError, setProfileError] = useState<string | null>(null)
 
-  const attachTokenProvider = useCallback((user: FirebaseUser | null) => {
-    if (user == null) {
-      configureApiTokenProvider(async () => null)
-      return
-    }
-    configureApiTokenProvider(async () => user.getIdToken())
+  // Provide token for apiFetch
+  useEffect(() => {
+    configureApiTokenProvider(async () => {
+      const auth = getFirebaseAuth()
+      if (auth.currentUser == null) return null
+      return auth.currentUser.getIdToken()
+    })
   }, [])
 
-  const hydrate = useCallback(
-    async (user: FirebaseUser | null) => {
-      if (user == null) {
-        setAppUser(null)
-        setProfileStatus('idle')
-        setProfileError(null)
-        attachTokenProvider(null)
-        return
+  const loadProfile = useCallback(async (isNewUser = false) => {
+    setProfileStatus('loading')
+    setProfileError(null)
+    try {
+      let user: ApiUser
+      if (isNewUser) {
+        user = await syncUserFromFirebase()
+      } else {
+        user = await getCurrentApiUser()
       }
-
-      attachTokenProvider(user)
-      setProfileStatus('loading')
-      setProfileError(null)
-
-      try {
-        const me = await loadBackendProfile()
-        setAppUser(me)
-        setProfileStatus('success')
-      } catch (e) {
-        setAppUser(null)
-        setProfileStatus('error')
-        setProfileError(e instanceof Error ? e.message : 'Failed to load profile')
-      }
-    },
-    [attachTokenProvider],
-  )
+      setAppUser(user)
+      setProfileStatus('success')
+    } catch (e) {
+      console.error('Failed to load API profile:', e)
+      setProfileStatus('error')
+      setProfileError(e instanceof Error ? e.message : 'Unknown error')
+    }
+  }, [])
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
+    const auth = getFirebaseAuth()
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user)
       setFirebaseReady(true)
-      void hydrate(user)
+
+      if (user != null) {
+        // Only load profile if we don't have one or if it's a fresh login
+        // But for simplicity, we load it whenever firebase signs in
+        void loadProfile()
+      } else {
+        setAppUser(null)
+        setProfileStatus('idle')
+      }
     })
-  }, [auth, hydrate])
+    return () => unsubscribe()
+  }, [loadProfile])
 
-  const signInWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider)
-  }, [auth])
+  const signInWithGoogle = async () => {
+    const auth = getFirebaseAuth()
+    const provider = new GoogleAuthProvider()
+    await signInWithPopup(auth, provider)
+  }
 
-  const signOutUser = useCallback(async () => {
+  const signInWithEmail = async (email: string, pass: string) => {
+    const auth = getFirebaseAuth()
+    await signInWithEmailAndPassword(auth, email, pass)
+  }
+
+  const signUpWithEmail = async (email: string, pass: string) => {
+    const auth = getFirebaseAuth()
+    await createUserWithEmailAndPassword(auth, email, pass)
+  }
+
+  const signOutUser = async () => {
+    const auth = getFirebaseAuth()
     await signOut(auth)
-  }, [auth])
+  }
 
-  const retryProfile = useCallback(async () => {
-    if (firebaseUser == null) return
-    await hydrate(firebaseUser)
-  }, [firebaseUser, hydrate])
+  const retryProfile = async () => {
+    await loadProfile()
+  }
 
-  const value = useMemo(
-    () => ({
-      firebaseReady,
-      firebaseUser,
-      appUser,
-      profileStatus,
-      profileError,
-      signInWithGoogle,
-      signOutUser,
-      retryProfile,
-    }),
-    [
-      appUser,
-      firebaseReady,
-      firebaseUser,
-      profileError,
-      profileStatus,
-      retryProfile,
-      signInWithGoogle,
-      signOutUser,
-    ],
-  )
+  const value: AuthContextValue = {
+    firebaseReady,
+    firebaseUser,
+    appUser,
+    profileStatus,
+    profileError,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    signOutUser,
+    retryProfile,
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
