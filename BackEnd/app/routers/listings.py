@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, status
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
@@ -41,10 +42,10 @@ def create_listing(
     city: str = Form(...),
     category_id: int = Form(...),
     is_negotiable: bool = Form(False),
-    # Exactly 3 required images
+    # 1 to 3 images
     image1: UploadFile = File(..., description="First image (will be set as primary/cover)"),
-    image2: UploadFile = File(..., description="Second image"),
-    image3: UploadFile = File(..., description="Third image"),
+    image2: Optional[UploadFile] = File(None, description="Second image"),
+    image3: Optional[UploadFile] = File(None, description="Third image"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -58,7 +59,7 @@ def create_listing(
         category_id=category_id,
         is_negotiable=is_negotiable,
     )
-    files = [image1, image2, image3]
+    files = [f for f in [image1, image2, image3] if f is not None]
     return listing_service.create_listing(db, current_user, data, files)
 
 

@@ -9,11 +9,11 @@ from app.services.storage import upload_service
 from app.repositories.listing_repo import MAX_LISTING_IMAGES
 
 def create_listing(db: Session, owner: User, data: ListingCreate, files: list[UploadFile]) -> Listing:
-    """Create a new listing with exactly 3 images uploaded in one atomic call."""
-    if len(files) != MAX_LISTING_IMAGES:
+    """Create a new listing with 1 to 3 images uploaded in one atomic call."""
+    if not (1 <= len(files) <= MAX_LISTING_IMAGES):
         raise HTTPException(
             status_code=400,
-            detail=f"Exactly {MAX_LISTING_IMAGES} images are required to create a listing."
+            detail=f"Between 1 and {MAX_LISTING_IMAGES} images are required to create a listing."
         )
 
     # Verify category exists
