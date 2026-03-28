@@ -9,18 +9,42 @@ import '../../features/conversations/presentation/inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../auth/auth_provider.dart';
 
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'HomeTab');
-final shellNavigatorSearchKey = GlobalKey<NavigatorState>(debugLabel: 'SearchTab');
-final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'FavTab');
-final shellNavigatorInboxKey = GlobalKey<NavigatorState>(debugLabel: 'InboxTab');
-final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'ProfileTab');
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
 
-final appRouter = GoRouter(
-  navigatorKey: rootNavigatorKey,
-  initialLocation: '/feed',
-  routes: [
+  // We scope the GlobalKeys to the router instance so that if the router is rebuilt
+  // (e.g., on login/logout), new keys are generated, avoiding the "Multiple widgets used the same GlobalKey" error.
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'HomeTab');
+  final shellNavigatorSearchKey = GlobalKey<NavigatorState>(debugLabel: 'SearchTab');
+  final shellNavigatorFavoritesKey = GlobalKey<NavigatorState>(debugLabel: 'FavTab');
+  final shellNavigatorInboxKey = GlobalKey<NavigatorState>(debugLabel: 'InboxTab');
+  final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'ProfileTab');
+
+  return GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: '/feed',
+    redirect: (context, state) {
+      final loggedIn = authState.value != null;
+      final loggingIn = state.uri.toString() == '/login' || state.uri.toString() == '/register';
+
+      final requiresAuth = state.uri.toString().startsWith('/inbox') ||
+                           state.uri.toString().startsWith('/favorites');
+
+      if (requiresAuth && !loggedIn) {
+        return '/login';
+      }
+
+      if (loggedIn && loggingIn) {
+        return '/feed';
+      }
+
+      return null;
+    },
+    routes: [
     // Auth Routes
     GoRoute(
       path: '/login',
@@ -91,3 +115,4 @@ final appRouter = GoRouter(
     ),
   ],
 );
+});
