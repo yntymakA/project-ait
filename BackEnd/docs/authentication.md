@@ -77,6 +77,6 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
 | Role | Can access |
 |------|-----------|
 | `user` | Own profile, listings, messages, favorites |
-| `moderator` | + Listing moderation |
+
 | `admin` | + Full admin panel |
-| `superadmin` | + Platform configuration |
+
