@@ -1,4 +1,4 @@
-/** Matches FastAPI `UserResponse` / `UserSyncResponse` (role & status as strings in JSON). */
+/** Matches FastAPI user schemas (`UserResponse`, `UserSyncResponse`, `UserMeResponse`). */
 
 export type ApiUserRole = 'guest' | 'authenticated_user' | 'admin'
 
@@ -18,4 +18,8 @@ export interface ApiUser {
   profile_image_url: string | null
   last_seen_at: string | null
   created_at: string
+  /** Present on `GET /users/me` only. */
+  has_featured_badge?: boolean
+  /** Present on `GET /users/me` only (wallet). */
+  balance?: string | number
 }

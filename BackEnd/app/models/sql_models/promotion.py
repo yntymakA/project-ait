@@ -7,7 +7,7 @@ class Promotion(Base):
     __tablename__ = "promotions"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
-    listing_id = Column(BigInteger, ForeignKey("listings.id"), nullable=False, index=True)
+    listing_id = Column(BigInteger, ForeignKey("listings.id"), nullable=True, index=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     package_id = Column(Integer, ForeignKey("promotion_packages.id"), nullable=True)
     

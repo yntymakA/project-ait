@@ -26,7 +26,7 @@ def list_packages(db: Session = Depends(get_db)):
     "/purchase",
     response_model=PromotionResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Purchase a promotion for your listing",
+    summary="Purchase featured badge promotion",
 )
 def purchase_promotion(
     data: PurchasePromotionRequest,
@@ -34,10 +34,8 @@ def purchase_promotion(
     user: User = Depends(get_current_user),
 ):
     """
-    Deducts the package price from the user's balance and activates the promotion.
-    - `featured`: listing receives a VIP badge in feeds.
-    - `boosted`: listing's timestamp is refreshed, pushing it to the top of date-sorted feeds.
-    - `top_feed`: listing is pinned above all organic results via SQL ORDER BY.
+    Deducts package price from user balance and activates Featured immediately.
+    Optionally pass `listing_id` to associate this Featured badge with a specific listing.
     """
     return promotion_service.purchase_promotion(
         db=db,

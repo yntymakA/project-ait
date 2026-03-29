@@ -29,10 +29,16 @@ class UserResponse(UserBase):
     last_seen_at: Optional[datetime] = None
     created_at: datetime
     
-    # We ignore balance here from public response usually, but you can include it if needed
-    
     class Config:
         from_attributes = True
+
+
+class UserMeResponse(UserResponse):
+    """Current user only: wallet + featured (VIP) badge derived from active promotions."""
+
+    has_featured_badge: bool = False
+    # float serializes reliably in JSON for all clients (Decimal can become string in some stacks)
+    balance: float = 0.0
 
 class UserSyncResponse(UserResponse):
     """Response returned when syncing a firebase token"""
@@ -47,6 +53,7 @@ class PublicUserResponse(BaseModel):
     city: Optional[str] = None
     member_since: datetime
     active_listing_count: int
+    has_featured_badge: bool = False
 
     class Config:
         from_attributes = True

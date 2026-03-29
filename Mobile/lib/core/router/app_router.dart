@@ -10,6 +10,8 @@ import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/create/presentation/create_screen.dart';
 import '../../features/conversations/presentation/inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/promotions_screen.dart';
+import '../../features/profile/presentation/transaction_history_screen.dart';
 import '../../features/listings/presentation/my_listings_screen.dart';
 import '../../features/listings/presentation/edit_listing_screen.dart';
 import '../../features/profile/presentation/seller_profile_screen.dart';
@@ -46,6 +48,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                            state.uri.toString().startsWith('/favorites') ||
                            state.uri.toString().startsWith('/my-listings') ||
                            state.uri.toString().startsWith('/edit-listing') ||
+                           state.uri.path.startsWith('/promotions') ||
+                           state.uri.path.startsWith('/transaction-history') ||
                            isListingChat;
 
       if (requiresAuth && !loggedIn) {
@@ -115,6 +119,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       path: '/my-listings',
       parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) => const MyListingsScreen(),
+    ),
+    GoRoute(
+      path: '/promotions',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const PromotionsScreen(),
+    ),
+    GoRoute(
+      path: '/transaction-history',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const TransactionHistoryScreen(),
     ),
     GoRoute(
       path: '/edit-listing/:id',

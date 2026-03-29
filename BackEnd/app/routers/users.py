@@ -1,21 +1,40 @@
+from decimal import Decimal
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status
 from sqlalchemy.orm import Session
 from typing import Annotated
 
 from app.core.dependencies import get_db, get_current_user
 from app.core.security import get_current_firebase_uid
+
 from app.schemas.user import (
     UserResponse,
     UserSyncResponse,
     UserUpdate,
     PublicUserResponse,
     UserPublicListingsResponse,
+    UserMeResponse,
 )
 from app.services.user import user_service
 from app.services.storage import upload_service
 from app.repositories import user_repo
+from app.repositories import promotion_repo
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+def _user_me_response(db: Session, user) -> UserMeResponse:
+    """Reload user row so balance matches DB (session can be stale across requests)."""
+    db.refresh(user)
+    has_badge = promotion_repo.user_has_active_featured_promotion(db, user.id)
+    base = UserResponse.model_validate(user)
+    bal = user.balance
+    balance = float(Decimal(str(bal))) if bal is not None else 0.0
+    return UserMeResponse(
+        **base.model_dump(),
+        has_featured_badge=has_badge,
+        balance=balance,
+    )
 
 @router.post("/sync", response_model=UserSyncResponse, status_code=status.HTTP_200_OK)
 def sync_user(
@@ -32,20 +51,23 @@ def sync_user(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/me", response_model=UserResponse)
-def read_current_user(current_user = Depends(get_current_user)):
-    """Get loaded profile for current authenticated user."""
-    return current_user
+@router.get("/me", response_model=UserMeResponse)
+def read_current_user(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get loaded profile for current authenticated user (includes balance + featured badge)."""
+    return _user_me_response(db, current_user)
 
-@router.patch("/me", response_model=UserResponse)
+@router.patch("/me", response_model=UserMeResponse)
 def update_current_user(
     update_data: UserUpdate,
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Update profile information for current user."""
     updated_user = user_service.update_user_profile(db, current_user, update_data)
-    return updated_user
+    return _user_me_response(db, updated_user)
 
 
 @router.post("/me/avatar", summary="Upload profile image")
@@ -77,6 +99,7 @@ def get_public_profile(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     
     active_count = user_repo.count_active_listings(db, user_id)
+    has_badge = promotion_repo.user_has_active_featured_promotion(db, user_id)
     return {
         "id": user.id,
         "full_name": user.full_name,
@@ -84,6 +107,7 @@ def get_public_profile(user_id: int, db: Session = Depends(get_db)):
         "city": user.city,
         "member_since": user.created_at,
         "active_listing_count": active_count,
+        "has_featured_badge": has_badge,
     }
 
 

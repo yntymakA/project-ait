@@ -290,10 +290,31 @@ class _ProfileHeader extends StatelessWidget {
                 : null,
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            profile.fullName,
-            style: AppTextStyles.headlineSmall,
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  profile.fullName,
+                  style: AppTextStyles.headlineSmall,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (profile.hasFeaturedBadge) ...[
+                const SizedBox(width: 6),
+                Tooltip(
+                  message: 'Featured seller',
+                  child: Icon(
+                    Icons.verified,
+                    size: 26,
+                    color: AppColors.info,
+                  ),
+                ),
+              ],
+            ],
           ),
           if (profile.city != null && profile.city!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),

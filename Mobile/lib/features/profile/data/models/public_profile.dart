@@ -5,6 +5,7 @@ class PublicProfile {
   final String? city;
   final DateTime memberSince;
   final int activeListingCount;
+  final bool hasFeaturedBadge;
 
   PublicProfile({
     required this.id,
@@ -13,6 +14,7 @@ class PublicProfile {
     this.city,
     required this.memberSince,
     required this.activeListingCount,
+    this.hasFeaturedBadge = false,
   });
 
   factory PublicProfile.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class PublicProfile {
       city: json['city'] as String?,
       memberSince: DateTime.parse(json['member_since'] as String),
       activeListingCount: (json['active_listing_count'] as num?)?.toInt() ?? 0,
+      hasFeaturedBadge: json['has_featured_badge'] as bool? ?? false,
     );
   }
 }

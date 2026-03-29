@@ -21,7 +21,7 @@ class PromotionPackageListResponse(BaseModel):
 
 
 class PurchasePromotionRequest(BaseModel):
-    listing_id: int
+    listing_id: Optional[int] = None
     package_id: int
     target_city: Optional[str] = None
     target_category_id: Optional[int] = None
@@ -29,7 +29,7 @@ class PurchasePromotionRequest(BaseModel):
 
 class PromotionResponse(BaseModel):
     id: int
-    listing_id: int
+    listing_id: Optional[int] = None
     user_id: int
     package_id: Optional[int] = None
     promotion_type: PromotionTypeEnum

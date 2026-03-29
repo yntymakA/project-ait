@@ -3,13 +3,18 @@ from datetime import datetime, timedelta
 from typing import Optional
 from app.models.sql_models.promotion import Promotion
 from app.models.sql_models.promotion_package import PromotionPackage
-from app.models.enums import PromotionStatusEnum
+from app.models.enums import PromotionStatusEnum, PromotionTypeEnum
 
 
 def get_active_packages(db: Session) -> list[PromotionPackage]:
+    """Only featured-badge packages are exposed for now (VIP / verified on profile)."""
     return (
         db.query(PromotionPackage)
-        .filter(PromotionPackage.is_active == True)
+        .filter(
+            PromotionPackage.is_active == True,
+            PromotionPackage.promotion_type == PromotionTypeEnum.featured,
+            PromotionPackage.duration_days.in_([7, 30]),
+        )
         .order_by(PromotionPackage.price.asc())
         .all()
     )
@@ -25,7 +30,7 @@ def get_package_by_id(db: Session, package_id: int) -> PromotionPackage | None:
 
 def create_promotion(
     db: Session,
-    listing_id: int,
+    listing_id: Optional[int],
     user_id: int,
     package: PromotionPackage,
     target_city: Optional[str] = None,
@@ -47,6 +52,22 @@ def create_promotion(
     db.add(promo)
     db.flush()
     return promo
+
+
+def user_has_active_featured_promotion(db: Session, user_id: int) -> bool:
+    """True if this user has at least one active *featured* promotion (VIP badge on profile)."""
+    now = datetime.utcnow()
+    return (
+        db.query(Promotion.id)
+        .filter(
+            Promotion.user_id == user_id,
+            Promotion.promotion_type == PromotionTypeEnum.featured,
+            Promotion.status == PromotionStatusEnum.active,
+            Promotion.ends_at > now,
+        )
+        .first()
+        is not None
+    )
 
 
 def expire_old_promotions(db: Session) -> int:

@@ -16,12 +16,8 @@ engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
 PACKAGES = [
-    dict(name="Featured Badge (7 days)",   promotion_type=PromotionTypeEnum.featured,  duration_days=7,  price=5.00,  is_active=True),
-    dict(name="Featured Badge (30 days)",  promotion_type=PromotionTypeEnum.featured,  duration_days=30, price=15.00, is_active=True),
-    dict(name="Boost to Top (1 day)",      promotion_type=PromotionTypeEnum.boosted,   duration_days=1,  price=2.00,  is_active=True),
-    dict(name="Boost to Top (7 days)",     promotion_type=PromotionTypeEnum.boosted,   duration_days=7,  price=10.00, is_active=True),
-    dict(name="Top Feed (3 days)",         promotion_type=PromotionTypeEnum.top_feed,  duration_days=3,  price=8.00,  is_active=True),
-    dict(name="Top Feed (14 days)",        promotion_type=PromotionTypeEnum.top_feed,  duration_days=14, price=25.00, is_active=True),
+    dict(name="Featured Badge (7 days)", promotion_type=PromotionTypeEnum.featured, duration_days=7, price=5.00, is_active=True),
+    dict(name="Featured Badge (30 days)", promotion_type=PromotionTypeEnum.featured, duration_days=30, price=15.00, is_active=True),
 ]
 
 def main():
