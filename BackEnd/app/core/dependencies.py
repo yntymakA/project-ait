@@ -34,6 +34,7 @@ def get_current_user(
     return user
 
 from app.models.enums import RoleEnum
+from app.models.enums import UserStatusEnum
 
 def get_current_admin(current_user=Depends(get_current_user)):
     """Dependency that enforces the user has the admin role."""
@@ -41,5 +42,21 @@ def get_current_admin(current_user=Depends(get_current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
+        )
+    return current_user
+
+
+def get_current_active_user(current_user=Depends(get_current_user)):
+    """Dependency that enforces the user account is active."""
+    raw_status = current_user.status
+    if isinstance(raw_status, UserStatusEnum):
+        status_value = raw_status.value
+    else:
+        status_value = str(raw_status).strip().lower()
+
+    if status_value != UserStatusEnum.active.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is not active. Please contact support.",
         )
     return current_user

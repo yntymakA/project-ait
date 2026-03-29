@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, status
 from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_db, get_current_user, get_current_active_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
 from app.schemas.pagination import PaginatedResponse, create_paginated_response
 from app.schemas.search import ListingSearchParams
@@ -47,7 +47,7 @@ def create_listing(
     image1: UploadFile = File(..., description="First image (will be set as primary/cover)"),
     image2: UploadFile | None = None,
     image3: UploadFile | None = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Create a new real estate listing. Requires exactly 3 images uploaded as multipart form."""
@@ -90,7 +90,7 @@ def get_listing(listing_id: int, db: Session = Depends(get_db)):
 def update_listing(
     listing_id: int,
     data: ListingUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Update details of an owned listing."""
@@ -100,7 +100,7 @@ def update_listing(
 @router.patch("/{listing_id}/deactivate", response_model=ListingResponse)
 def deactivate_listing(
     listing_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """Deactivate (archive) an owned listing."""

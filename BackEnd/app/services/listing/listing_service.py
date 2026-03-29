@@ -5,12 +5,21 @@ from app.repositories import listing_repo, category_repo
 from app.schemas.listing import ListingCreate, ListingUpdate
 from app.models.sql_models.user import User
 from app.models.sql_models.listing import Listing
-from app.models.enums import ListingStatusEnum
+from app.models.enums import ListingStatusEnum, UserStatusEnum
 from app.services.storage import upload_service
 from app.repositories.listing_repo import MAX_LISTING_IMAGES
 
+
+def _ensure_user_is_active(user: User):
+    raw_status = user.status
+    status_value = raw_status.value if isinstance(raw_status, UserStatusEnum) else str(raw_status).strip().lower()
+    if status_value != UserStatusEnum.active.value:
+        raise HTTPException(status_code=403, detail="Your account is not active. Please contact support.")
+
 def create_listing(db: Session, owner: User, data: ListingCreate, files: list[UploadFile]) -> Listing:
     """Create a new listing with 1 to 3 images uploaded in one atomic call."""
+    _ensure_user_is_active(owner)
+
     if not (1 <= len(files) <= MAX_LISTING_IMAGES):
         raise HTTPException(
             status_code=400,
@@ -42,6 +51,8 @@ def get_listing(db: Session, listing_id: int) -> Listing:
     return listing
 
 def update_listing(db: Session, listing_id: int, owner: User, data: ListingUpdate) -> Listing:
+    _ensure_user_is_active(owner)
+
     listing = get_listing(db, listing_id)
 
     if listing.owner_id != owner.id:
@@ -59,6 +70,8 @@ def update_listing(db: Session, listing_id: int, owner: User, data: ListingUpdat
     return listing_repo.update_listing(db, listing, update_data)
 
 def set_primary_image(db: Session, listing_id: int, image_id: int, owner: User):
+    _ensure_user_is_active(owner)
+
     listing = get_listing(db, listing_id)
     if listing.owner_id != owner.id:
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -69,6 +82,8 @@ def set_primary_image(db: Session, listing_id: int, image_id: int, owner: User):
 
 
 def deactivate_listing(db: Session, listing_id: int, owner: User) -> Listing:
+    _ensure_user_is_active(owner)
+
     listing = get_listing(db, listing_id)
 
     if listing.owner_id != owner.id:
