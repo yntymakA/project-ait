@@ -43,7 +43,9 @@ class FeedState {
 
 // --- Notifier ---
 class FeedListingsNotifier extends AsyncNotifier<FeedState> {
-  static const int _pageSize = 20;
+  // Smaller chunks improve perceived speed and reduce failures on slow networks.
+  static const int _pageSize = 10;
+  bool _isFetchingPage = false;
 
   ListingRepository get _repository => ref.read(listingRepositoryProvider);
 
@@ -74,6 +76,7 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
   }
 
   Future<void> refresh() async {
+    _isFetchingPage = false;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchInitialPage(ref.read(feedFiltersProvider)));
   }
@@ -81,7 +84,10 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
   Future<void> loadMore() async {
     final currentState = state.value;
     // Don't load if currently loading, errored, or no more items
-    if (currentState == null || currentState.isLoadingMore || !currentState.hasMore) return;
+    if (currentState == null || currentState.isLoadingMore || !currentState.hasMore || _isFetchingPage) {
+      return;
+    }
+    _isFetchingPage = true;
 
     // Set loading indicator
     state = AsyncValue.data(currentState.copyWith(isLoadingMore: true));
@@ -113,6 +119,8 @@ class FeedListingsNotifier extends AsyncNotifier<FeedState> {
       state = AsyncValue.data(currentState.copyWith(isLoadingMore: false));
       // Re-throwing the error using state = AsyncError will destroy the existing list UI,
       // so in infinite scroll it's better to catch it here or show a toast.
+    } finally {
+      _isFetchingPage = false;
     }
   }
 }

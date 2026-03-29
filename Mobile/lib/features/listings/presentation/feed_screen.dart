@@ -20,6 +20,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   final _scrollController = ScrollController();
+  DateTime? _lastLoadMoreAt;
 
   @override
   void initState() {
@@ -36,11 +37,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   void _onScroll() {
     if (!mounted) return;
-    
+
     // Trigger loadMore when user scrolls past 80% of the list
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
     if (currentScroll >= (maxScroll * 0.8)) {
+      final now = DateTime.now();
+      if (_lastLoadMoreAt != null && now.difference(_lastLoadMoreAt!) < const Duration(milliseconds: 800)) {
+        return;
+      }
+      _lastLoadMoreAt = now;
       ref.read(feedListingsProvider.notifier).loadMore();
     }
   }
