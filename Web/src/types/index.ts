@@ -37,4 +37,4 @@ export interface Report {
   resolution_note?: string
 }
 
-export type ReportSortKey = 'name' | 'generatedAt'
+export type ReportSortKey = 'reason_code' | 'created_at'

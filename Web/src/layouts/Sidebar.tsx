@@ -4,6 +4,7 @@ import styles from './Sidebar.module.css'
 
 const items = [
   { to: paths.dashboard, label: 'Dashboard' },
+  { to: paths.categories, label: 'Categories' },
   { to: paths.reports, label: 'Reports' },
   { to: paths.users, label: 'Users' },
   { to: paths.listings, label: 'Listings' },

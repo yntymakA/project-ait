@@ -6,6 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { ListingsPage } from '@/pages/ListingsPage'
 import { ReportsPage } from '@/pages/ReportsPage'
 import { UsersPage } from '@/pages/UsersPage'
+import { CategoriesPage } from '@/pages/CategoriesPage'
 import { ProtectedLayout } from './ProtectedLayout'
 
 export const router = createBrowserRouter([
@@ -22,6 +23,11 @@ export const router = createBrowserRouter([
             index: true,
             element: <DashboardPage />,
             handle: { title: 'Dashboard' },
+          },
+          {
+            path: 'categories',
+            element: <CategoriesPage />,
+            handle: { title: 'Categories' },
           },
           {
             path: 'reports',

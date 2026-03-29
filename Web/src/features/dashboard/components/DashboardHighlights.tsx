@@ -20,8 +20,8 @@ export function DashboardHighlights({
         <ul className={styles.list}>
           {recentReports.map((r) => (
             <li key={r.id}>
-              <span className={styles.emphasis}>{r.name}</span> —{' '}
-              {formatDate(r.generatedAt)} ({r.format.toUpperCase()})
+              <span className={styles.emphasis}>{r.reason_code}</span> -{' '}
+              {formatDate(r.created_at)} ({r.target_type})
             </li>
           ))}
         </ul>
@@ -39,7 +39,7 @@ export function DashboardHighlights({
         <ul className={styles.list}>
           {sampleUsers.map((u) => (
             <li key={u.id}>
-              <span className={styles.emphasis}>{u.displayName}</span> — {u.role}
+              <span className={styles.emphasis}>{u.full_name}</span> - {u.role}
             </li>
           ))}
         </ul>
