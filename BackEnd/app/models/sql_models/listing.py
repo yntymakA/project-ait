@@ -15,7 +15,10 @@ class Listing(Base):
     price = Column(Numeric(12, 2), nullable=False)
     currency = Column(String(10), default="USD", nullable=False)
     city = Column(String(100), nullable=True)
-    
+    # WGS84 coordinates from map picker (e.g. Leaflet + OSM tiles). Both set or both null.
+    latitude = Column(Numeric(10, 8), nullable=True)
+    longitude = Column(Numeric(11, 8), nullable=True)
+
     status = Column(Enum(ListingStatusEnum), default=ListingStatusEnum.draft, nullable=False)
     moderation_status = Column(Enum(ModerationStatusEnum), default=ModerationStatusEnum.pending, nullable=False)
     promotion_status = Column(Enum(PromotionStatusEnum), default=PromotionStatusEnum.none, nullable=False)

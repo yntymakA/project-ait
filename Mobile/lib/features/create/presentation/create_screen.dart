@@ -4,9 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../../core/maps/listing_location_picker.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../listings/data/repositories/listing_repository.dart';
 import '../../listings/providers/listing_providers.dart';
 
 // ---------------------------------------------------------------------------
@@ -15,19 +16,29 @@ import '../../listings/providers/listing_providers.dart';
 
 class CreateListingState {
   final List<File?> images; // always length 3
+  final double? latitude;
+  final double? longitude;
   final bool isSubmitting;
   final String? errorMessage;
   final bool isSuccess;
 
   const CreateListingState({
     required this.images,
+    this.latitude,
+    this.longitude,
     this.isSubmitting = false,
     this.errorMessage,
     this.isSuccess = false,
   });
 
+  bool get hasLocation =>
+      latitude != null && longitude != null;
+
   CreateListingState copyWith({
     List<File?>? images,
+    double? latitude,
+    double? longitude,
+    bool clearPin = false,
     bool? isSubmitting,
     String? errorMessage,
     bool clearError = false,
@@ -35,6 +46,8 @@ class CreateListingState {
   }) {
     return CreateListingState(
       images: images ?? this.images,
+      latitude: clearPin ? null : (latitude ?? this.latitude),
+      longitude: clearPin ? null : (longitude ?? this.longitude),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isSuccess: isSuccess ?? this.isSuccess,
@@ -52,6 +65,18 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   @override
   CreateListingState build() {
     return const CreateListingState(images: [null, null, null]);
+  }
+
+  void setPin(LatLng point) {
+    state = state.copyWith(
+      latitude: point.latitude,
+      longitude: point.longitude,
+      clearError: true,
+    );
+  }
+
+  void clearPin() {
+    state = state.copyWith(clearPin: true, clearError: true);
   }
 
   Future<void> pickImage(int slot) async {
@@ -102,6 +127,8 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
         image1Path: state.images[0]!.path,
         image2Path: state.images[1]?.path,
         image3Path: state.images[2]?.path,
+        latitude: state.latitude,
+        longitude: state.longitude,
       );
 
       // Refresh the feed so the new listing appears
@@ -305,6 +332,40 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildNegotiableToggle(),
+                  ],
+                ),
+              ),
+            ),
+            // ---- Location (OSM) ----
+            SliverToBoxAdapter(
+              child: _SectionCard(
+                title: 'Location on map',
+                subtitle: 'Optional — tap to drop a pin (OpenStreetMap)',
+                icon: Icons.map_outlined,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ListingLocationPicker(
+                      latitude: createState.latitude,
+                      longitude: createState.longitude,
+                      height: 220,
+                      onLocationChanged: (point) {
+                        ref.read(createListingProvider.notifier).setPin(point);
+                      },
+                    ),
+                    if (createState.hasLocation) ...[
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            ref.read(createListingProvider.notifier).clearPin();
+                          },
+                          icon: const Icon(Icons.clear, size: 18),
+                          label: const Text('Clear pin'),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -55,6 +55,8 @@ class ListingRepository {
     required String image1Path,
     String? image2Path,
     String? image3Path,
+    double? latitude,
+    double? longitude,
   }) async {
     final formMap = <String, dynamic>{
       'title': title,
@@ -66,6 +68,11 @@ class ListingRepository {
       'is_negotiable': isNegotiable,
       'image1': await MultipartFile.fromFile(image1Path, filename: 'image1.jpg'),
     };
+
+    if (latitude != null && longitude != null) {
+      formMap['latitude'] = latitude;
+      formMap['longitude'] = longitude;
+    }
 
     if (image2Path != null) {
       formMap['image2'] = await MultipartFile.fromFile(image2Path, filename: 'image2.jpg');

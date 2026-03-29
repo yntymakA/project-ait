@@ -40,6 +40,10 @@ class Listing {
   final double price;
   final String currency;
   final String city;
+
+  /// WGS84 decimal degrees from map/OSM; both null if not pinned.
+  final double? latitude;
+  final double? longitude;
   
   @JsonKey(name: 'category_id')
   final int categoryId;
@@ -71,6 +75,8 @@ class Listing {
     required this.price,
     required this.currency,
     required this.city,
+    this.latitude,
+    this.longitude,
     required this.categoryId,
     required this.isNegotiable,
     required this.status,

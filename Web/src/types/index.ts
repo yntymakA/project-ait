@@ -20,6 +20,9 @@ export interface Listing {
   currency: string
   updated_at: string
   owner_id?: string
+  /** WGS84 from map/OSM picker; both present or both absent */
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface Report {

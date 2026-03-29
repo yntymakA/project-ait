@@ -42,6 +42,8 @@ def create_listing(
     city: str = Form(...),
     category_id: int = Form(...),
     is_negotiable: bool = Form(False),
+    latitude: float | None = Form(None, description="WGS84 latitude (-90..90), optional; use with longitude"),
+    longitude: float | None = Form(None, description="WGS84 longitude (-180..180), optional; use with latitude"),
     # 1 to 3 images
     image1: UploadFile = File(..., description="First image (will be set as primary/cover)"),
     image2: UploadFile | None = None,
@@ -58,6 +60,8 @@ def create_listing(
         city=city,
         category_id=category_id,
         is_negotiable=is_negotiable,
+        latitude=latitude,
+        longitude=longitude,
     )
     files = [f for f in [image1, image2, image3] if f is not None]
     return listing_service.create_listing(db, current_user, data, files)

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../data/models/listing.dart';
 import '../providers/listing_providers.dart';
 import '../../favorites/providers/favorite_providers.dart';
+import '../../../core/maps/listing_map_preview.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -230,6 +231,14 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                       ),
                     ],
                   ),
+                  if (listing.latitude != null && listing.longitude != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    ListingMapPreview(
+                      latitude: listing.latitude!,
+                      longitude: listing.longitude!,
+                      height: 200,
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
