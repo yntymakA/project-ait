@@ -5,11 +5,65 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/maps/listing_location_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../data/models/listing.dart';
 import '../providers/listing_providers.dart';
 import '../providers/my_listings_provider.dart';
+
+class _EditCategoryOption {
+  final int id;
+  final String name;
+  final int depth;
+
+  const _EditCategoryOption({
+    required this.id,
+    required this.name,
+    required this.depth,
+  });
+
+  String get label => '${'  ' * depth}$name';
+}
+
+List<_EditCategoryOption> _parseEditCategoryOptions(List<dynamic> raw) {
+  final options = <_EditCategoryOption>[];
+
+  void walk(List<dynamic> nodes, int depth) {
+    for (final node in nodes) {
+      if (node is! Map) continue;
+      final map = Map<String, dynamic>.from(node);
+      final idValue = map['id'];
+      final nameValue = map['name'];
+      if (idValue is! num || nameValue is! String || nameValue.trim().isEmpty) {
+        continue;
+      }
+
+      options.add(
+        _EditCategoryOption(
+          id: idValue.toInt(),
+          name: nameValue,
+          depth: depth,
+        ),
+      );
+
+      final children = map['children'];
+      if (children is List) {
+        walk(children, depth + 1);
+      }
+    }
+  }
+
+  walk(raw, 0);
+  return options;
+}
+
+final editCategoryOptionsProvider =
+    FutureProvider.autoDispose<List<_EditCategoryOption>>((ref) async {
+  final response = await dioClient.get<List<dynamic>>('/categories');
+  final data = response.data ?? const <dynamic>[];
+  return _parseEditCategoryOptions(data);
+});
 
 class EditListingScreen extends ConsumerStatefulWidget {
   final int listingId;
@@ -27,11 +81,11 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _cityController = TextEditingController();
-  final _categoryController = TextEditingController();
 
   double? _latitude;
   double? _longitude;
   bool _isNegotiable = false;
+  int? _selectedCategoryId;
   bool _saving = false;
   int? _seededForId;
 
@@ -41,7 +95,6 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     _cityController.dispose();
-    _categoryController.dispose();
     super.dispose();
   }
 
@@ -52,7 +105,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
     _descriptionController.text = l.description;
     _priceController.text = l.price.toString();
     _cityController.text = l.city;
-    _categoryController.text = l.categoryId.toString();
+    _selectedCategoryId = l.categoryId;
     _isNegotiable = l.isNegotiable;
     _latitude = l.latitude;
     _longitude = l.longitude;
@@ -66,10 +119,9 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
     final price = double.tryParse(_priceController.text.trim());
     if (price == null) return;
 
-    final categoryId = int.tryParse(_categoryController.text.trim());
-    if (categoryId == null) {
+    if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid category ID'), backgroundColor: AppColors.error),
+        const SnackBar(content: Text('Please select a category'), backgroundColor: AppColors.error),
       );
       return;
     }
@@ -88,7 +140,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
         price: price,
         currency: listing.currency,
         city: _cityController.text.trim(),
-        categoryId: categoryId,
+        categoryId: _selectedCategoryId,
         isNegotiable: _isNegotiable,
         latitude: _latitude,
         longitude: _longitude,
@@ -119,6 +171,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(listingDetailProvider(widget.listingId));
+    final categoriesAsync = ref.watch(editCategoryOptionsProvider);
 
     return async.when(
       data: (listing) {
@@ -205,13 +258,7 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _categoryController,
-                  decoration: _fieldDeco('Category ID'),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
+                _buildCategoryField(categoriesAsync),
                 const SizedBox(height: 12),
                 InkWell(
                   onTap: () => setState(() => _isNegotiable = !_isNegotiable),
@@ -335,6 +382,50 @@ class _EditListingScreenState extends ConsumerState<EditListingScreen> {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
+    );
+  }
+
+  Widget _buildCategoryField(AsyncValue<List<_EditCategoryOption>> categoriesAsync) {
+    return categoriesAsync.when(
+      loading: () => const LinearProgressIndicator(minHeight: 2),
+      error: (_, __) => Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Failed to load categories',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+          TextButton(
+            onPressed: () => ref.invalidate(editCategoryOptionsProvider),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+      data: (categories) {
+        final hasSelected = _selectedCategoryId != null &&
+            categories.any((c) => c.id == _selectedCategoryId);
+
+        return DropdownButtonFormField<int>(
+          initialValue: hasSelected ? _selectedCategoryId : null,
+          items: categories
+              .map(
+                (c) => DropdownMenuItem<int>(
+                  value: c.id,
+                  child: Text(c.label, overflow: TextOverflow.ellipsis),
+                ),
+              )
+              .toList(),
+          isExpanded: true,
+          onChanged: categories.isEmpty
+              ? null
+              : (value) {
+                  setState(() => _selectedCategoryId = value);
+                },
+          validator: (_) => _selectedCategoryId == null ? 'Required' : null,
+          decoration: _fieldDeco('Category'),
+        );
+      },
     );
   }
 }

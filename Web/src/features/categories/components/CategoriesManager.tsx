@@ -37,6 +37,7 @@ function flattenTree(nodes: CategoryTreeResponse[], parentName = ''): FlatCatego
 
 export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activatingId, setActivatingId] = useState<number | null>(null)
   const [deactivatingId, setDeactivatingId] = useState<number | null>(null)
 
   const [name, setName] = useState('')
@@ -93,7 +94,7 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
   }
 
   const handleDeactivate = async (row: FlatCategoryRow) => {
-    if (deactivatingId != null) return
+    if (deactivatingId != null || activatingId != null) return
     const confirmed = window.confirm(`Deactivate category "${row.name}"?`)
     if (!confirmed) return
 
@@ -113,6 +114,27 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
     }
   }
 
+  const handleActivate = async (row: FlatCategoryRow) => {
+    if (deactivatingId != null || activatingId != null) return
+    const confirmed = window.confirm(`Activate category "${row.name}"?`)
+    if (!confirmed) return
+
+    setFeedback(null)
+    setIsError(false)
+    try {
+      setActivatingId(row.id)
+      const result = await categoriesService.activate(row.id)
+      setFeedback(`Category activated. Affected: ${result.activated_count}`)
+      await onCategoryAdded()
+    } catch (err) {
+      console.error(err)
+      setIsError(true)
+      setFeedback(err instanceof Error ? err.message : 'Failed to activate category')
+    } finally {
+      setActivatingId(null)
+    }
+  }
+
   const columns: TableColumn<FlatCategoryRow>[] = [
     { id: 'id', header: 'ID', accessor: 'id' },
     { id: 'name', header: 'Name', accessor: 'name' },
@@ -123,14 +145,23 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
     {
       id: 'actions',
       header: 'Actions',
-      cell: (row) => (
+      cell: (row) => row.is_active ? (
         <button
           type="button"
           className={styles.dangerButton}
-          disabled={deactivatingId === row.id}
+          disabled={deactivatingId === row.id || activatingId != null}
           onClick={() => void handleDeactivate(row)}
         >
           {deactivatingId === row.id ? 'Deactivating...' : 'Deactivate'}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={styles.successButton}
+          disabled={activatingId === row.id || deactivatingId != null}
+          onClick={() => void handleActivate(row)}
+        >
+          {activatingId === row.id ? 'Activating...' : 'Activate'}
         </button>
       ),
     },
@@ -159,7 +190,7 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
           className={styles.input}
         >
           <option value="">No Parent (Root)</option>
-          {flatCategories.map((cat) => (
+          {flatCategories.filter((cat) => cat.is_active).map((cat) => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>

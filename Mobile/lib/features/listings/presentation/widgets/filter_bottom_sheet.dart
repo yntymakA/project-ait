@@ -1,10 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../providers/feed_filters_provider.dart';
+
+class _FeedCategoryOption {
+  final int id;
+  final String name;
+  final int depth;
+
+  const _FeedCategoryOption({
+    required this.id,
+    required this.name,
+    required this.depth,
+  });
+
+  String get label => '${'  ' * depth}$name';
+}
+
+List<_FeedCategoryOption> _parseFeedCategoryOptions(List<dynamic> raw) {
+  final options = <_FeedCategoryOption>[];
+
+  void walk(List<dynamic> nodes, int depth) {
+    for (final node in nodes) {
+      if (node is! Map) continue;
+      final map = Map<String, dynamic>.from(node);
+      final idValue = map['id'];
+      final nameValue = map['name'];
+      if (idValue is! num || nameValue is! String || nameValue.trim().isEmpty) {
+        continue;
+      }
+
+      options.add(
+        _FeedCategoryOption(
+          id: idValue.toInt(),
+          name: nameValue,
+          depth: depth,
+        ),
+      );
+
+      final children = map['children'];
+      if (children is List) {
+        walk(children, depth + 1);
+      }
+    }
+  }
+
+  walk(raw, 0);
+  return options;
+}
+
+final feedCategoryOptionsProvider =
+    FutureProvider.autoDispose<List<_FeedCategoryOption>>((ref) async {
+  final response = await dioClient.get<List<dynamic>>('/categories');
+  final data = response.data ?? const <dynamic>[];
+  return _parseFeedCategoryOptions(data);
+});
 
 class FilterBottomSheet extends ConsumerStatefulWidget {
   const FilterBottomSheet({super.key});
@@ -14,16 +68,16 @@ class FilterBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
-  final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _minPriceController = TextEditingController();
   final TextEditingController _maxPriceController = TextEditingController();
+  int? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
     final filters = ref.read(feedFiltersProvider);
-    _categoryController.text = filters.categoryId != null ? filters.categoryId.toString() : '';
+    _selectedCategoryId = filters.categoryId;
     _cityController.text = filters.city ?? '';
     _minPriceController.text = filters.minPrice != null ? filters.minPrice.toString() : '';
     _maxPriceController.text = filters.maxPrice != null ? filters.maxPrice.toString() : '';
@@ -31,7 +85,6 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
 
   @override
   void dispose() {
-    _categoryController.dispose();
     _cityController.dispose();
     _minPriceController.dispose();
     _maxPriceController.dispose();
@@ -39,13 +92,12 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
   }
 
   void _applyFilters() {
-    final categoryId = int.tryParse(_categoryController.text.trim());
     final city = _cityController.text.trim();
     final minPrice = double.tryParse(_minPriceController.text.trim());
     final maxPrice = double.tryParse(_maxPriceController.text.trim());
 
     ref.read(feedFiltersProvider.notifier).applyFilters(
-      categoryId: categoryId,
+      categoryId: _selectedCategoryId,
       city: city.isEmpty ? null : city,
       minPrice: minPrice,
       maxPrice: maxPrice,
@@ -54,7 +106,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
   }
 
   void _clearFilters() {
-    _categoryController.clear();
+    _selectedCategoryId = null;
     _cityController.clear();
     _minPriceController.clear();
     _maxPriceController.clear();
@@ -69,6 +121,8 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final categoriesAsync = ref.watch(feedCategoryOptionsProvider);
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
@@ -87,7 +141,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
           Expanded(
             child: ListView(
               children: [
-                _buildCategorySection(),
+                _buildCategorySection(categoriesAsync),
                 const SizedBox(height: AppSpacing.lg),
                 _buildCitySection(),
                 const SizedBox(height: AppSpacing.lg),
@@ -121,23 +175,63 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     );
   }
 
-  Widget _buildCategorySection() {
+  Widget _buildCategorySection(AsyncValue<List<_FeedCategoryOption>> categoriesAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Category ID', style: AppTextStyles.titleMedium),
+        Text('Category', style: AppTextStyles.titleMedium),
         const SizedBox(height: AppSpacing.sm),
-        TextField(
-          controller: _categoryController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: 'e.g. 1',
-            border: OutlineInputBorder(
-              borderRadius: AppSpacing.rounded,
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        categoriesAsync.when(
+          loading: () => const LinearProgressIndicator(minHeight: 2),
+          error: (_, __) => Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Failed to load categories',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ),
+              TextButton(
+                onPressed: () => ref.invalidate(feedCategoryOptionsProvider),
+                child: const Text('Retry'),
+              ),
+            ],
           ),
+          data: (categories) {
+            final hasSelected = _selectedCategoryId != null &&
+                categories.any((c) => c.id == _selectedCategoryId);
+
+            return DropdownButtonFormField<int>(
+              initialValue: hasSelected ? _selectedCategoryId : null,
+              isExpanded: true,
+              items: [
+                const DropdownMenuItem<int>(
+                  value: -1,
+                  child: Text('All categories'),
+                ),
+                ...categories.map(
+                  (c) => DropdownMenuItem<int>(
+                    value: c.id,
+                    child: Text(c.label, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+              ],
+              onChanged: categories.isEmpty
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _selectedCategoryId = value == -1 ? null : value;
+                      });
+                    },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: AppSpacing.rounded,
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              ),
+            );
+          },
         ),
       ],
     );

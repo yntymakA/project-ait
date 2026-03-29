@@ -6,9 +6,63 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/maps/listing_location_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../listings/providers/listing_providers.dart';
+
+class _CategoryOption {
+  final int id;
+  final String name;
+  final int depth;
+
+  const _CategoryOption({
+    required this.id,
+    required this.name,
+    required this.depth,
+  });
+
+  String get label => '${'  ' * depth}$name';
+}
+
+List<_CategoryOption> _parseCategoryOptions(List<dynamic> raw) {
+  final options = <_CategoryOption>[];
+
+  void walk(List<dynamic> nodes, int depth) {
+    for (final node in nodes) {
+      if (node is! Map) continue;
+      final map = Map<String, dynamic>.from(node);
+      final idValue = map['id'];
+      final nameValue = map['name'];
+      if (idValue is! num || nameValue is! String || nameValue.trim().isEmpty) {
+        continue;
+      }
+
+      options.add(
+        _CategoryOption(
+          id: idValue.toInt(),
+          name: nameValue,
+          depth: depth,
+        ),
+      );
+
+      final children = map['children'];
+      if (children is List) {
+        walk(children, depth + 1);
+      }
+    }
+  }
+
+  walk(raw, 0);
+  return options;
+}
+
+final createCategoryOptionsProvider =
+    FutureProvider.autoDispose<List<_CategoryOption>>((ref) async {
+  final response = await dioClient.get<List<dynamic>>('/categories');
+  final data = response.data ?? const <dynamic>[];
+  return _parseCategoryOptions(data);
+});
 
 // ---------------------------------------------------------------------------
 // State
@@ -150,14 +204,9 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   }
 }
 
-final createListingProvider =
-    NotifierProvider<CreateListingNotifier, CreateListingState>(
+final createListingProvider = NotifierProvider<CreateListingNotifier, CreateListingState>(
   CreateListingNotifier.new,
 );
-
-// Hardcoded values per requirements
-const _kDefaultCategoryId = 1;
-const _kDefaultCurrency = 'USD';
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -179,7 +228,7 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
   final _cityController = TextEditingController();
 
   static const String _currency = 'USD';
-  static const int _categoryId = 1;
+  int? _selectedCategoryId;
   bool _isNegotiable = false;
 
   @override
@@ -196,6 +245,16 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
 
     final price = double.tryParse(_priceController.text.trim());
     if (price == null) return;
+    if (_selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     final success = await ref.read(createListingProvider.notifier).submit(
           title: _titleController.text.trim(),
@@ -203,7 +262,7 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
           price: price,
           currency: _currency,
           city: _cityController.text.trim(),
-          categoryId: _categoryId,
+          categoryId: _selectedCategoryId!,
           isNegotiable: _isNegotiable,
         );
 
@@ -221,6 +280,7 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
       _priceController.clear();
       _cityController.clear();
       setState(() {
+        _selectedCategoryId = null;
         _isNegotiable = false;
       });
       context.go('/feed');
@@ -230,6 +290,7 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
   @override
   Widget build(BuildContext context) {
     final createState = ref.watch(createListingProvider);
+    final categoriesAsync = ref.watch(createCategoryOptionsProvider);
 
     // Show error messages as snackbars
     ref.listen<CreateListingState>(createListingProvider, (prev, next) {
@@ -291,6 +352,8 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
                           ? 'Description is required'
                           : null,
                     ),
+                    const SizedBox(height: 16),
+                    _buildCategoryField(categoriesAsync),
                   ],
                 ),
               ),
@@ -492,6 +555,78 @@ class _CreateScreenState extends ConsumerState<CreateScreen> {
   }
 
   // Removed Category and Currency dropdowns per requirements
+
+  Widget _buildCategoryField(AsyncValue<List<_CategoryOption>> categoriesAsync) {
+    return categoriesAsync.when(
+      loading: () => const LinearProgressIndicator(minHeight: 2),
+      error: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Failed to load categories',
+            style: TextStyle(color: AppColors.error),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () => ref.invalidate(createCategoryOptionsProvider),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+      data: (categories) {
+        final hasSelected = _selectedCategoryId != null &&
+            categories.any((c) => c.id == _selectedCategoryId);
+
+        return DropdownButtonFormField<int>(
+          initialValue: hasSelected ? _selectedCategoryId : null,
+          items: categories
+              .map(
+                (c) => DropdownMenuItem<int>(
+                  value: c.id,
+                  child: Text(c.label, overflow: TextOverflow.ellipsis),
+                ),
+              )
+              .toList(),
+          onChanged: categories.isEmpty
+              ? null
+              : (value) {
+                  setState(() => _selectedCategoryId = value);
+                },
+          isExpanded: true,
+          validator: (_) {
+            if (_selectedCategoryId == null) return 'Category is required';
+            return null;
+          },
+          decoration: InputDecoration(
+            labelText: 'Category',
+            hintText: categories.isEmpty ? 'No categories available' : 'Select category',
+            filled: true,
+            fillColor: AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildNegotiableToggle() {
     return InkWell(

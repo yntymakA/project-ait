@@ -5,12 +5,12 @@ from app.models.sql_models.user import User
 from app.models.enums import RoleEnum
 from fastapi import HTTPException
 
-def get_categories_tree(db: Session) -> list[CategoryTreeResponse]:
+def get_categories_tree(db: Session, include_inactive: bool = False) -> list[CategoryTreeResponse]:
     """
     Recursively fetch categories and build a nested tree sequence.
     """
     def build_tree(parent_id: int | None) -> list[CategoryTreeResponse]:
-        categories = category_repo.get_active_categories(db, parent_id)
+        categories = category_repo.get_categories(db, parent_id, include_inactive=include_inactive)
         result = []
         for cat in categories:
             node = CategoryTreeResponse.model_validate(cat)
@@ -47,4 +47,19 @@ def deactivate_category(db: Session, user: User, category_id: int) -> dict:
     return {
         "ok": True,
         "deactivated_count": affected,
+    }
+
+
+def activate_category(db: Session, user: User, category_id: int) -> dict:
+    if user.role != RoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Only admins can activate categories")
+
+    category = category_repo.get_category_by_id_any_status(db, category_id)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    affected = category_repo.activate_category_and_descendants(db, category_id)
+    return {
+        "ok": True,
+        "activated_count": affected,
     }

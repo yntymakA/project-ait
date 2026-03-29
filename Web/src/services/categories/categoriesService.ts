@@ -18,7 +18,7 @@ export interface CategoryTreeResponse extends CategoryResponse {
 
 export const categoriesService = {
   getTree: async (): Promise<CategoryTreeResponse[]> => {
-    return apiFetch<CategoryTreeResponse[]>('/categories')
+    return apiFetch<CategoryTreeResponse[]>('/categories/admin/tree')
   },
   create: async (data: CategoryBase): Promise<CategoryResponse> => {
     return apiFetch<CategoryResponse>('/categories', {
@@ -28,6 +28,11 @@ export const categoriesService = {
   },
   deactivate: async (categoryId: number): Promise<{ ok: boolean; deactivated_count: number }> => {
     return apiFetch<{ ok: boolean; deactivated_count: number }>(`/categories/${categoryId}/deactivate`, {
+      method: 'PATCH',
+    })
+  },
+  activate: async (categoryId: number): Promise<{ ok: boolean; activated_count: number }> => {
+    return apiFetch<{ ok: boolean; activated_count: number }>(`/categories/${categoryId}/activate`, {
       method: 'PATCH',
     })
   },

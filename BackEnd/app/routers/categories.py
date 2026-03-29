@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_db, get_current_user, get_current_admin
 from app.schemas.category import CategoryTreeResponse, CategoryBase, CategoryResponse
 from app.models.sql_models.user import User
 from app.services.category import category_service
@@ -14,6 +14,15 @@ def get_categories(db: Session = Depends(get_db)):
     Returns the active category tree.
     """
     return category_service.get_categories_tree(db)
+
+
+@router.get("/admin/tree", response_model=List[CategoryTreeResponse])
+def get_categories_admin_tree(
+    _admin_user: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Returns full category tree for admins (including deactivated categories)."""
+    return category_service.get_categories_tree(db, include_inactive=True)
 
 @router.post("", response_model=CategoryResponse, status_code=201)
 def create_category(
@@ -35,3 +44,13 @@ def deactivate_category(
 ):
     """Deactivate a category (and its descendants). Requires admin privileges."""
     return category_service.deactivate_category(db, current_user, category_id)
+
+
+@router.patch("/{category_id}/activate")
+def activate_category(
+    category_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Activate a category (and its descendants). Requires admin privileges."""
+    return category_service.activate_category(db, current_user, category_id)

@@ -1,16 +1,26 @@
 from sqlalchemy.orm import Session
 from app.models.sql_models.category import Category
 
-def get_active_categories(db: Session, parent_id: int | None = None) -> list[Category]:
-    query = db.query(Category).filter(Category.is_active == True)
+def get_categories(db: Session, parent_id: int | None = None, include_inactive: bool = False) -> list[Category]:
+    query = db.query(Category)
+    if not include_inactive:
+        query = query.filter(Category.is_active == True)
     if parent_id is not None:
         query = query.filter(Category.parent_id == parent_id)
     else:
         query = query.filter(Category.parent_id == None)
     return query.order_by(Category.display_order).all()
 
+
+def get_active_categories(db: Session, parent_id: int | None = None) -> list[Category]:
+    return get_categories(db, parent_id=parent_id, include_inactive=False)
+
 def get_category_by_id(db: Session, category_id: int) -> Category | None:
     return db.query(Category).filter(Category.id == category_id, Category.is_active == True).first()
+
+
+def get_category_by_id_any_status(db: Session, category_id: int) -> Category | None:
+    return db.query(Category).filter(Category.id == category_id).first()
 
 def get_category_by_slug(db: Session, slug: str) -> Category | None:
     return db.query(Category).filter(Category.slug == slug).first()
@@ -48,3 +58,26 @@ def deactivate_category_and_descendants(db: Session, category_id: int) -> int:
 
     db.commit()
     return deactivated_count
+
+
+def activate_category_and_descendants(db: Session, category_id: int) -> int:
+    to_process = [category_id]
+    visited: set[int] = set()
+    activated_count = 0
+
+    while to_process:
+        current_id = to_process.pop()
+        if current_id in visited:
+            continue
+        visited.add(current_id)
+
+        category = db.query(Category).filter(Category.id == current_id).first()
+        if category is not None and not category.is_active:
+            category.is_active = True
+            activated_count += 1
+
+        children = get_direct_children(db, current_id)
+        to_process.extend(child.id for child in children)
+
+    db.commit()
+    return activated_count

@@ -1,7 +1,7 @@
 class Env {
-  // Android emulator reaches host machine via 10.0.2.2.
+  // Physical phone on the same Wi-Fi reaches backend via host LAN IP.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.0.2.2:8000',
+    defaultValue: 'http://10.253.226.126:8000',
   );
 }
