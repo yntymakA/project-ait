@@ -3,7 +3,7 @@ from sqlalchemy import func, case
 from fastapi import HTTPException
 from app.models.sql_models.listing import Listing, ListingImage
 from app.models.sql_models.promotion import Promotion
-from app.models.enums import ModerationStatusEnum, PromotionStatusEnum, PromotionTypeEnum
+from app.models.enums import ListingStatusEnum, ModerationStatusEnum, PromotionStatusEnum, PromotionTypeEnum
 
 MAX_LISTING_IMAGES = 3
 
@@ -89,7 +89,10 @@ def get_paginated_listings(
 
     query = (
         db.query(Listing)
-        .filter(Listing.deleted_at == None)
+        .filter(
+            Listing.deleted_at == None,
+            Listing.status != ListingStatusEnum.archived,
+        )
     )
 
     # ── Filters ───────────────────────────────────────────
@@ -176,3 +179,10 @@ def set_primary_image(db: Session, listing_id: int, image_id: int) -> bool:
         return True
     db.commit()
     return False
+
+
+def archive_listing(db: Session, listing: Listing) -> Listing:
+    listing.status = ListingStatusEnum.archived
+    db.commit()
+    db.refresh(listing)
+    return listing

@@ -5,6 +5,7 @@ from app.repositories import listing_repo, category_repo
 from app.schemas.listing import ListingCreate, ListingUpdate
 from app.models.sql_models.user import User
 from app.models.sql_models.listing import Listing
+from app.models.enums import ListingStatusEnum
 from app.services.storage import upload_service
 from app.repositories.listing_repo import MAX_LISTING_IMAGES
 
@@ -65,3 +66,15 @@ def set_primary_image(db: Session, listing_id: int, image_id: int, owner: User):
     if not listing_repo.set_primary_image(db, listing_id, image_id):
         raise HTTPException(status_code=404, detail="Image not found")
     return True
+
+
+def deactivate_listing(db: Session, listing_id: int, owner: User) -> Listing:
+    listing = get_listing(db, listing_id)
+
+    if listing.owner_id != owner.id:
+        raise HTTPException(status_code=403, detail="Not authorized to deactivate this listing")
+
+    if listing.status == ListingStatusEnum.archived:
+        return listing
+
+    return listing_repo.archive_listing(db, listing)

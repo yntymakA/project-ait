@@ -97,6 +97,16 @@ def update_listing(
     return listing_service.update_listing(db, listing_id, current_user, data)
 
 
+@router.patch("/{listing_id}/deactivate", response_model=ListingResponse)
+def deactivate_listing(
+    listing_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deactivate (archive) an owned listing."""
+    return listing_service.deactivate_listing(db, listing_id, current_user)
+
+
 @router.patch("/{listing_id}/images/{image_id}/primary")
 def set_primary_image(
     listing_id: int,

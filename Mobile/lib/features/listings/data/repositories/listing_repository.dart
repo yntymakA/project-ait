@@ -142,5 +142,10 @@ class ListingRepository {
     final response = await _dio.patch('/listings/$id', data: data);
     return Listing.fromJson(response.data as Map<String, dynamic>);
   }
+
+  Future<Listing> deactivateListing(int id) async {
+    final response = await _dio.patch('/listings/$id/deactivate');
+    return Listing.fromJson(response.data as Map<String, dynamic>);
+  }
 }
 

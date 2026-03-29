@@ -5,13 +5,17 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../data/models/listing.dart';
+import '../providers/listing_providers.dart';
 import '../providers/my_listings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class MyListingsScreen extends ConsumerWidget {
   const MyListingsScreen({super.key});
 
-  String _statusLabel(String moderationStatus) {
+  String _statusLabel(String moderationStatus, String listingStatus) {
+    if (listingStatus.toLowerCase() == 'archived') {
+      return 'Archived';
+    }
     switch (moderationStatus.toLowerCase()) {
       case 'approved':
         return 'Live';
@@ -24,7 +28,10 @@ class MyListingsScreen extends ConsumerWidget {
     }
   }
 
-  Color _statusColor(String moderationStatus) {
+  Color _statusColor(String moderationStatus, String listingStatus) {
+    if (listingStatus.toLowerCase() == 'archived') {
+      return AppColors.grey500;
+    }
     switch (moderationStatus.toLowerCase()) {
       case 'approved':
         return AppColors.success;
@@ -89,8 +96,53 @@ class MyListingsScreen extends ConsumerWidget {
                 final listing = page.items[index];
                 return _ListingTile(
                   listing: listing,
-                  statusLabel: _statusLabel(listing.moderationStatus),
-                  statusColor: _statusColor(listing.moderationStatus),
+                  statusLabel: _statusLabel(listing.moderationStatus, listing.status),
+                  statusColor: _statusColor(listing.moderationStatus, listing.status),
+                  onDeactivate: listing.status.toLowerCase() == 'archived'
+                      ? null
+                      : () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Deactivate listing'),
+                              content: Text('Deactivate "${listing.title}"? It will be hidden from the public feed.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Deactivate'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true) return;
+
+                          try {
+                            await ref.read(listingRepositoryProvider).deactivateListing(listing.id);
+                            ref.invalidate(myListingsProvider);
+                            ref.read(feedListingsProvider.notifier).refresh();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Listing deactivated'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to deactivate listing: $e'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          }
+                        },
                   onTap: () => context.push('/edit-listing/${listing.id}'),
                 );
               },
@@ -127,12 +179,14 @@ class _ListingTile extends StatelessWidget {
   final Listing listing;
   final String statusLabel;
   final Color statusColor;
+  final Future<void> Function()? onDeactivate;
   final VoidCallback onTap;
 
   const _ListingTile({
     required this.listing,
     required this.statusLabel,
     required this.statusColor,
+    this.onDeactivate,
     required this.onTap,
   });
 
@@ -222,6 +276,20 @@ class _ListingTile extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (onDeactivate != null) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => onDeactivate?.call(),
+                          icon: const Icon(Icons.visibility_off_outlined, size: 18, color: AppColors.error),
+                          label: const Text(
+                            'Deactivate',
+                            style: TextStyle(color: AppColors.error),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
