@@ -22,23 +22,6 @@ class MainShell extends StatelessWidget {
       appBar: AppBar(
         title: Text(currentTitle),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: context.l10n.actionSearch,
-            onPressed: () {
-              // TODO: open search
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            tooltip: context.l10n.actionNotifications,
-            onPressed: () {
-              // TODO: open notifications
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
       ),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
