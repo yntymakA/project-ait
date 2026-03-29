@@ -49,13 +49,6 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Favorites'),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        centerTitle: false,
-      ),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () => ref.read(favoritesListProvider.notifier).refresh(),

@@ -16,13 +16,57 @@ class MainShell extends StatelessWidget {
       context.l10n.tabChats,
       context.l10n.tabProfile,
     ];
+    final isHomeTab = navigationShell.currentIndex == 0;
+    final isCreateTab = navigationShell.currentIndex == 2;
     final currentTitle = titles[navigationShell.currentIndex];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(currentTitle),
-        centerTitle: false,
-      ),
+      appBar: isCreateTab
+          ? null
+          : AppBar(
+              title: isHomeTab
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.apartment_rounded,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Property Hub',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.1,
+                                  ),
+                            ),
+                            Text(
+                              'marketplace',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    letterSpacing: 0.3,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Text(currentTitle),
+              centerTitle: false,
+            ),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
