@@ -1,0 +1,41 @@
+{
+  "@@locale": "ru",
+  "appTitle": "AIT Маркетплейс",
+  "tabHome": "Главная",
+  "tabFavorites": "Избранное",
+  "tabCreate": "Создать",
+  "tabChats": "Чаты",
+  "tabProfile": "Профиль",
+  "actionSearch": "Поиск",
+  "actionNotifications": "Уведомления",
+  "settingsLanguage": "Язык",
+  "languageDialogTitle": "Выберите язык",
+  "languageSystem": "Системный",
+  "languageEnglish": "Английский",
+  "languageRussian": "Русский",
+  "profileTopUpTitle": "Пополнить баланс",
+  "profileAmountLabel": "Сумма (USD)",
+  "profileAmountHint": "например, 25",
+  "commonCancel": "Отмена",
+  "commonAdd": "Добавить",
+  "profileInvalidAmount": "Введите корректную сумму",
+  "profileAddedAmount": "Добавлено {amount}",
+  "@profileAddedAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "profileDefaultName": "Пользователь",
+  "profileFeaturedTooltip": "Продавец Featured - VIP",
+  "commonRetry": "Повторить",
+  "profileBalanceLabel": "Баланс",
+  "profileFeaturedBadge": "Featured бейдж",
+  "profileFeaturedSubtitle": "Тарифы - значок верификации в профиле и объявлении",
+  "profileTopUpBalance": "Пополнить баланс",
+  "profileMyListings": "Мои объявления",
+  "profileTransactionHistory": "История транзакций",
+  "profileTransactionSubtitle": "Пополнения и покупки бейджа",
+  "profileLogout": "Выйти",
+  "profileNotSignedIn": "Вы не авторизованы",
+  "profileSignInRegister": "Войти / Регистрация"
+}

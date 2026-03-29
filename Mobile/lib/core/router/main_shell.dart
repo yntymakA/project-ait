@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../l10n/l10n.dart';
 
 class MainShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({super.key, required this.navigationShell});
 
-  // Tab titles for the AppBar
-  static const List<String> _titles = [
-    'Home',
-    'Favorites',
-    'Create',
-    'Chats',
-    'Profile',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final currentTitle = _titles[navigationShell.currentIndex];
+    final titles = [
+      context.l10n.tabHome,
+      context.l10n.tabFavorites,
+      context.l10n.tabCreate,
+      context.l10n.tabChats,
+      context.l10n.tabProfile,
+    ];
+    final currentTitle = titles[navigationShell.currentIndex];
 
     return Scaffold(
       appBar: AppBar(
@@ -26,14 +25,14 @@ class MainShell extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            tooltip: 'Search',
+            tooltip: context.l10n.actionSearch,
             onPressed: () {
               // TODO: open search
             },
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            tooltip: 'Notifications',
+            tooltip: context.l10n.actionNotifications,
             onPressed: () {
               // TODO: open notifications
             },
@@ -50,31 +49,31 @@ class MainShell extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: context.l10n.tabHome,
           ),
           NavigationDestination(
             icon: Icon(Icons.favorite_outline),
             selectedIcon: Icon(Icons.favorite),
-            label: 'Favorites',
+            label: context.l10n.tabFavorites,
           ),
           NavigationDestination(
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
-            label: 'Create',
+            label: context.l10n.tabCreate,
           ),
           NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline),
             selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Chats',
+            label: context.l10n.tabChats,
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: context.l10n.tabProfile,
           ),
         ],
       ),

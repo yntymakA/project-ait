@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
+import '../../../core/l10n/locale_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -38,26 +40,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('Top up balance'),
+            title: Text(context.l10n.profileTopUpTitle),
             content: TextField(
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
               ],
-              decoration: const InputDecoration(
-                labelText: 'Amount (USD)',
-                hintText: 'e.g. 25',
+              decoration: InputDecoration(
+                labelText: context.l10n.profileAmountLabel,
+                hintText: context.l10n.profileAmountHint,
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, null),
-                child: const Text('Cancel'),
+                child: Text(context.l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                child: const Text('Add'),
+                child: Text(context.l10n.commonAdd),
               ),
             ],
           );
@@ -70,7 +72,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final v = double.tryParse(submitted);
     if (v == null || v <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid amount')),
+        SnackBar(content: Text(context.l10n.profileInvalidAmount)),
       );
       return;
     }
@@ -81,7 +83,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ref.invalidate(transactionHistoryProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Added \$${v.toStringAsFixed(2)}')),
+          SnackBar(
+            content: Text(
+              context.l10n.profileAddedAmount('\$${v.toStringAsFixed(2)}'),
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -102,6 +108,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     await ref.read(currentMeProvider.future);
   }
 
+  String _languageLabel(Locale? locale) {
+    final l10n = context.l10n;
+    switch (locale?.languageCode) {
+      case 'en':
+        return l10n.languageEnglish;
+      case 'ru':
+        return l10n.languageRussian;
+      default:
+        return l10n.languageSystem;
+    }
+  }
+
+  Future<void> _showLanguageDialog() async {
+    final locale = ref.read(appLocaleProvider);
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        final l10n = ctx.l10n;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(l10n.languageDialogTitle),
+              ),
+              ListTile(
+                title: Text(l10n.languageSystem),
+                trailing: locale == null ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.pop(ctx, null),
+              ),
+              ListTile(
+                title: Text(l10n.languageEnglish),
+                trailing: locale?.languageCode == 'en' ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.pop(ctx, 'en'),
+              ),
+              ListTile(
+                title: Text(l10n.languageRussian),
+                trailing: locale?.languageCode == 'ru' ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.pop(ctx, 'ru'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted) return;
+    if (selected == locale?.languageCode) return;
+    await ref.read(appLocaleProvider.notifier).setLocaleCode(selected);
+  }
+
   Widget _nameRow(MeUser me) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +168,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Flexible(
           child: Text(
-            me.fullName.isNotEmpty ? me.fullName : 'User',
+            me.fullName.isNotEmpty ? me.fullName : context.l10n.profileDefaultName,
             style: AppTextStyles.headlineSmall,
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -119,7 +178,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (me.hasFeaturedBadge) ...[
           const SizedBox(width: 6),
           Tooltip(
-            message: 'Featured seller — VIP',
+            message: context.l10n.profileFeaturedTooltip,
             child: Icon(
               Icons.verified,
               size: 26,
@@ -135,6 +194,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final firebaseUser = ref.watch(currentUserProvider);
     final meAsync = ref.watch(currentMeProvider);
+    final selectedLocale = ref.watch(appLocaleProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -158,7 +218,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: AppSpacing.md),
                       FilledButton(
                         onPressed: () => ref.invalidate(currentMeProvider),
-                        child: const Text('Retry'),
+                        child: Text(context.l10n.commonRetry),
                       ),
                     ],
                   ),
@@ -226,7 +286,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   ),
                                   const SizedBox(width: AppSpacing.sm),
                                   Text(
-                                    'Balance  \$${me.balance.toStringAsFixed(2)}',
+                                    '${context.l10n.profileBalanceLabel}  \$${me.balance.toStringAsFixed(2)}',
                                     style: AppTextStyles.titleSmall.copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -241,32 +301,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.verified_outlined),
-                        title: const Text('Featured badge'),
-                        subtitle: const Text(
-                          'Pricing — verified check on profile & listing',
-                        ),
+                        title: Text(context.l10n.profileFeaturedBadge),
+                        subtitle: Text(context.l10n.profileFeaturedSubtitle),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/promotions'),
                       ),
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.add_card_outlined),
-                        title: const Text('Top up balance'),
+                        title: Text(context.l10n.profileTopUpBalance),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: _showTopUpDialog,
                       ),
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.list_alt_outlined),
-                        title: const Text('My Listings'),
+                        title: Text(context.l10n.profileMyListings),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/my-listings'),
                       ),
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.receipt_long_outlined),
-                        title: const Text('Transaction history'),
-                        subtitle: const Text('Top ups & badge purchases'),
+                        title: Text(context.l10n.profileTransactionHistory),
+                        subtitle: Text(context.l10n.profileTransactionSubtitle),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           ref.invalidate(transactionHistoryProvider);
@@ -276,9 +334,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.language),
-                        title: const Text('Language'),
-                        trailing: const Text('EN'),
-                        onTap: () {},
+                        title: Text(context.l10n.settingsLanguage),
+                        trailing: Text(_languageLabel(selectedLocale)),
+                        onTap: _showLanguageDialog,
                       ),
                       const Divider(height: 1),
                       const SizedBox(height: AppSpacing.xl),
@@ -291,8 +349,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ref.read(loginProvider.notifier).logout();
                           },
                           icon: const Icon(Icons.logout, color: AppColors.error),
-                          label: const Text(
-                            'Log out',
+                          label: Text(
+                            context.l10n.profileLogout,
                             style: TextStyle(color: AppColors.error),
                           ),
                           style: OutlinedButton.styleFrom(
@@ -324,13 +382,13 @@ class _LoggedOutBody extends StatelessWidget {
           Icon(Icons.account_circle, size: 100, color: AppColors.grey400),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Not signed in',
+            context.l10n.profileNotSignedIn,
             style: AppTextStyles.titleLarge,
           ),
           const SizedBox(height: AppSpacing.md),
           FilledButton(
             onPressed: onLogin,
-            child: const Text('Sign in / Register'),
+            child: Text(context.l10n.profileSignInRegister),
           ),
         ],
       ),

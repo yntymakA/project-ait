@@ -1,0 +1,41 @@
+{
+  "@@locale": "en",
+  "appTitle": "AIT Marketplace",
+  "tabHome": "Home",
+  "tabFavorites": "Favorites",
+  "tabCreate": "Create",
+  "tabChats": "Chats",
+  "tabProfile": "Profile",
+  "actionSearch": "Search",
+  "actionNotifications": "Notifications",
+  "settingsLanguage": "Language",
+  "languageDialogTitle": "Choose language",
+  "languageSystem": "System",
+  "languageEnglish": "English",
+  "languageRussian": "Russian",
+  "profileTopUpTitle": "Top up balance",
+  "profileAmountLabel": "Amount (USD)",
+  "profileAmountHint": "e.g. 25",
+  "commonCancel": "Cancel",
+  "commonAdd": "Add",
+  "profileInvalidAmount": "Enter a valid amount",
+  "profileAddedAmount": "Added {amount}",
+  "@profileAddedAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "profileDefaultName": "User",
+  "profileFeaturedTooltip": "Featured seller - VIP",
+  "commonRetry": "Retry",
+  "profileBalanceLabel": "Balance",
+  "profileFeaturedBadge": "Featured badge",
+  "profileFeaturedSubtitle": "Pricing - verified check on profile and listing",
+  "profileTopUpBalance": "Top up balance",
+  "profileMyListings": "My listings",
+  "profileTransactionHistory": "Transaction history",
+  "profileTransactionSubtitle": "Top ups and badge purchases",
+  "profileLogout": "Log out",
+  "profileNotSignedIn": "Not signed in",
+  "profileSignInRegister": "Sign in / Register"
+}
