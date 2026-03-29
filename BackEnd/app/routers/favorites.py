@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.services.favorites import favorite_service
 from app.models.sql_models.user import User
+from app.schemas.favorite import FavoritesListResponse
 
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
 
@@ -27,14 +28,12 @@ def remove_favorite(
     favorite_service.remove_favorite_service(db, user, listing_id)
     return
 
-@router.get("")
+@router.get("", response_model=FavoritesListResponse)
 def get_favorites(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    """Get the current user's paginated list of favorite listings."""
-    # It returns a dict that will be serialized via FastAPI's default JSON encoder
-    # which matches the format `{ items: [...Listings], total, limit, offset }`
+    """Get the current user's paginated list of favorite listings (full listing + images)."""
     return favorite_service.get_user_favorites_service(db, user, limit, offset)

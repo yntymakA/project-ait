@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.models.sql_models.favorite import Favorite
 from app.models.sql_models.listing import Listing
 
@@ -27,6 +27,7 @@ def get_user_favorites(db: Session, user_id: int, skip: int = 0, limit: int = 20
     total = db.query(Favorite).filter(Favorite.user_id == user_id).count()
     listings = (
         db.query(Listing)
+        .options(selectinload(Listing.images))
         .join(Favorite, Favorite.listing_id == Listing.id)
         .filter(Favorite.user_id == user_id)
         .order_by(Favorite.created_at.desc())
