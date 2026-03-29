@@ -1,87 +1,82 @@
-# Project AIT - Full Stack Marketplace Application
+# Project AIT
 
-Полнофункциональное мобильное и веб-приложение для маркетплейса с бэкэндом на Python (FastAPI).
+## Docker run
 
-## 📁 Структура проекта
-
-```
-project/
-├── BackEnd/          # Python FastAPI Backend
-├── Mobile/           # Flutter Mobile Application
-├── Web/              # React/Vite Web Application
-└── docs/             # Документация
-```
-
-## 🚀 Быстрый старт
-
-### Backend (Python/FastAPI)
+Из корня проекта:
 
 ```bash
-cd BackEnd
-python -m venv venv
-source venv/bin/activate  # или venv\Scripts\activate на Windows
-pip install -r requirements.txt
-python -m app.main
+cp .env.example .env
+docker compose up --build
 ```
 
-Backend доступен: `http://localhost:8000`
-API документация: `http://localhost:8000/docs`
+Поднимутся:
 
-### Mobile (Flutter)
+- `db` MySQL на `localhost:3307`
+- `api` FastAPI на `http://localhost:8000`
+- `web` на `http://localhost:5173`
+
+Что уже настроено:
+
+- backend ждёт готовности MySQL;
+- Alembic автоматически делает `upgrade head`;
+- web собирается в production внутри Docker.
+
+Полезные ссылки:
+
+- API health: `http://localhost:8000/health`
+- API docs: `http://localhost:8000/docs`
+- Web: `http://localhost:5173`
+
+Если нужен полный сброс базы:
 
 ```bash
+docker compose down -v
+docker compose up --build
+```
+
+## Env files
+
+Файлы окружения, которые реально используются:
+
+- [`.env.example`](/Users/main/Desktop/project%20ait/.env.example) — основной env для `docker compose` из корня проекта.
+- [`BackEnd/.env.example`](/Users/main/Desktop/project%20ait/BackEnd/.env.example) — env для локального запуска backend без Docker.
+- [`Web/.env.example`](/Users/main/Desktop/project%20ait/Web/.env.example) — env для локального запуска web без Docker.
+
+Для проверки через Docker учителю достаточно:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+## Mobile run
+
+Mobile не запускается через Docker. Он использует тот же backend на `8000`.
+
+Запуск:
+
+```bash
+docker compose up --build
 cd Mobile
 flutter pub get
+```
+
+Android по USB:
+
+```bash
+adb reverse tcp:8000 tcp:8000
 flutter run
 ```
 
-### Web (Vite + React + TypeScript)
+Android Emulator:
 
 ```bash
-cd Web
-npm install
-npm run dev
+flutter run --dart-define=API_URL=http://10.0.2.2:8000
 ```
 
-Web доступен: `http://localhost:5173`
+По умолчанию mobile использует `http://127.0.0.1:8000`.
+Отдельного `.env` для mobile нет: если нужен другой адрес backend, он передаётся через `--dart-define=API_URL=...`.
 
-## 📋 Требования
+## Firebase note
 
-- **Backend**: Python 3.9+, PostgreSQL
-- **Mobile**: Flutter 3.0+, iOS/Android SDK
-- **Web**: Node.js 18+, npm/yarn
-
-## 🔧 Технологический стек
-
-### Backend
-- FastAPI
-- SQLAlchemy
-- Alembic
-- PostgreSQL
-- Firebase Admin SDK
-
-### Mobile
-- Flutter
-- Firebase
-- GetX/Provider для управления состоянием
-
-### Web
-- React 18+
-- TypeScript
-- Vite
-- TailwindCSS
-
-## 📚 Документация
-
-- [Backend API Endpoints](BackEnd/docs/api-endpoints.md)
-- [Architecture](BackEnd/docs/architecture.md)
-- [Authentication](BackEnd/docs/authentication.md)
-- [Mobile Setup Guide](Mobile/README.md)
-
-## 👥 Автор
-
-Yntymak Almazbekuulu
-
-## 📝 Лицензия
-
-MIT
+Если файла `BackEnd/firebase-admin.json` нет, базовый запуск контейнеров всё равно работает. Он нужен только для Firebase Admin функций вроде server-side storage/messaging.
