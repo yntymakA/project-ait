@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/l10n/locale_provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -23,6 +25,9 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploadingAvatar = false;
+
   String _formatError(Object e) {
     if (e is DioException) {
       final d = e.response?.data;
@@ -106,6 +111,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ref.invalidate(currentMeProvider);
     ref.invalidate(transactionHistoryProvider);
     await ref.read(currentMeProvider.future);
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    if (_isUploadingAvatar) return;
+
+    final xFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1280,
+    );
+    if (xFile == null || !mounted) return;
+
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final name = xFile.path.split('/').last;
+      final form = FormData.fromMap({
+        'file': await MultipartFile.fromFile(xFile.path, filename: name),
+      });
+      await dioClient.post<Map<String, dynamic>>(
+        '/users/me/avatar',
+        data: form,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      ref.invalidate(currentMeProvider);
+      await ref.read(currentMeProvider.future);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_formatError(e)),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
+    }
   }
 
   String _languageLabel(Locale? locale) {
@@ -241,14 +283,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             CircleAvatar(
                               radius: 50,
                               backgroundColor: AppColors.surfaceVariant,
-                              child: Text(
-                                (me.fullName.isNotEmpty
-                                        ? me.fullName[0]
-                                        : firebaseUser.email?.substring(0, 1) ?? 'U')
-                                    .toUpperCase(),
-                                style: AppTextStyles.headlineMedium.copyWith(
-                                  color: AppColors.primary,
-                                ),
+                              backgroundImage: (me.profileImageUrl != null &&
+                                      me.profileImageUrl!.isNotEmpty)
+                                  ? NetworkImage(me.profileImageUrl!)
+                                  : null,
+                              child: (me.profileImageUrl == null ||
+                                      me.profileImageUrl!.isEmpty)
+                                  ? Text(
+                                      (me.fullName.isNotEmpty
+                                              ? me.fullName[0]
+                                              : firebaseUser.email?.substring(0, 1) ?? 'U')
+                                          .toUpperCase(),
+                                      style: AppTextStyles.headlineMedium.copyWith(
+                                        color: AppColors.primary,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextButton.icon(
+                              onPressed: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                              icon: _isUploadingAvatar
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.photo_camera_outlined),
+                              label: Text(
+                                _isUploadingAvatar ? 'Uploading...' : 'Change photo',
                               ),
                             ),
                             const SizedBox(height: AppSpacing.md),

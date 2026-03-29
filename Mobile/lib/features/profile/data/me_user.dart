@@ -4,12 +4,14 @@ class MeUser {
   final String fullName;
   final double balance;
   final bool hasFeaturedBadge;
+  final String? profileImageUrl;
 
   const MeUser({
     required this.id,
     required this.fullName,
     this.balance = 0,
     this.hasFeaturedBadge = false,
+    this.profileImageUrl,
   });
 
   factory MeUser.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,7 @@ class MeUser {
       fullName: json['full_name'] as String? ?? '',
       balance: _parseMoney(json['balance']),
       hasFeaturedBadge: json['has_featured_badge'] as bool? ?? false,
+      profileImageUrl: json['profile_image_url'] as String?,
     );
   }
 
