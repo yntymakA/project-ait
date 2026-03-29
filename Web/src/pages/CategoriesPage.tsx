@@ -6,7 +6,7 @@ export function CategoriesPage() {
   const { tree, isLoading, reloadTree } = useCategoriesTree()
 
   return (
-    <Card title="Categories" padding="none">
+    <Card padding="none">
       <div className={styles.section}>
         {isLoading ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>Loading categories...</div>

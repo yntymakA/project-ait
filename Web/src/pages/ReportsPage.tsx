@@ -6,11 +6,7 @@ export function ReportsPage() {
   const { rows, isLoading, onBlockUser } = useReportsTableState()
 
   return (
-    <Card
-      title="Reports"
-      subtitle={isLoading ? 'Loading…' : `${rows.length} report(s)`}
-      padding="none"
-    >
+    <Card padding="none">
       <div className={styles.section}>
         {isLoading ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>Loading…</div>

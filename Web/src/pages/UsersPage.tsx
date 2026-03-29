@@ -6,7 +6,7 @@ export function UsersPage() {
   const { role, setRole, rows, isLoading, onModerate } = useUsersDirectory()
 
   return (
-    <Card title="Users" padding="none">
+    <Card padding="none">
       <div className={styles.section}>
         <UsersFilterBar role={role} onRoleChange={setRole} />
         {isLoading ? (

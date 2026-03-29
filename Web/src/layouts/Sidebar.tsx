@@ -13,7 +13,6 @@ const items = [
 export function Sidebar() {
   return (
     <aside className={styles.aside}>
-      <div className={styles.navLabel}>Navigate</div>
       <nav aria-label="Primary">
         {items.map((item) => (
           <NavLink

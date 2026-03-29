@@ -6,11 +6,7 @@ export function ListingsPage() {
   const { status, setStatus, rows, isLoading, onModerate } = useListingsOverview()
 
   return (
-    <Card
-      title="Listings"
-      subtitle={isLoading ? 'Loading listings...' : `Total listings: ${rows.length}`}
-      padding="none"
-    >
+    <Card padding="none">
       <div className={styles.section}>
         <ListingsStatusTabs status={status} onChange={setStatus} />
         {isLoading ? (

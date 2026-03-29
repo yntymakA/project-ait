@@ -14,7 +14,6 @@ export function Header() {
             {appUser.full_name}
           </span>
         ) : null}
-        <span className={styles.meta}>Admin</span>
         <Button type="button" variant="ghost" size="sm" onClick={() => void signOutUser()}>
           Sign out
         </Button>

@@ -14,7 +14,10 @@ def _ensure_user_is_active(user: User):
     raw_status = user.status
     status_value = raw_status.value if isinstance(raw_status, UserStatusEnum) else str(raw_status).strip().lower()
     if status_value != UserStatusEnum.active.value:
-        raise HTTPException(status_code=403, detail="Your account is not active. Please contact support.")
+        raise HTTPException(
+            status_code=403,
+            detail=f"Your account is not active (status={status_value}). Please contact support.",
+        )
 
 def create_listing(db: Session, owner: User, data: ListingCreate, files: list[UploadFile]) -> Listing:
     """Create a new listing with 1 to 3 images uploaded in one atomic call."""
