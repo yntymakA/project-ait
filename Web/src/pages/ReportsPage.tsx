@@ -1,22 +1,21 @@
 import { Card } from '@/components/Card'
-import { ReportsDataTable, ReportsToolbar, useReportsTableState } from '@/features/reports'
+import { ReportsDataTable, useReportsTableState } from '@/features/reports'
 import styles from './PageSection.module.css'
 
 export function ReportsPage() {
-  const { state, setState, rows, isLoading, onResolve } = useReportsTableState()
+  const { rows, isLoading, onBlockUser } = useReportsTableState()
 
   return (
     <Card
-      title="Reports catalog"
-      subtitle={isLoading ? 'Loading reports...' : `Viewing ${rows.length} reports from the database`}
+      title="Reports"
+      subtitle={isLoading ? 'Loading…' : `${rows.length} report(s)`}
       padding="none"
     >
       <div className={styles.section}>
-        <ReportsToolbar state={state} onChange={setState} />
         {isLoading ? (
-          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading reports data...</div>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading…</div>
         ) : (
-          <ReportsDataTable rows={rows} onResolve={onResolve} />
+          <ReportsDataTable rows={rows} onBlockUser={onBlockUser} />
         )}
       </div>
     </Card>

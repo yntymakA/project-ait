@@ -1,43 +1,46 @@
-import { useEffect, useState } from 'react'
-import type { ReportsTableState } from '../types'
+import { useCallback, useEffect, useState } from 'react'
 import type { Report } from '@/types'
 import { reportsService } from '@/services/reports/reportsService'
+import { usersService } from '@/services/users/usersService'
+import { ApiRequestError } from '@/services/api'
 
 export function useReportsTableState() {
-  const [state, setState] = useState<ReportsTableState>({
-    sort: 'generatedAt',
-    order: 'desc',
-  })
   const [rows, setRows] = useState<Report[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    let mounted = true
+  const load = useCallback(async () => {
     setIsLoading(true)
-    reportsService.list().then((items) => {
-      if (mounted) {
-        setRows(items)
-        setIsLoading(false)
-      }
-    }).catch(err => {
-      console.error('Failed to fetch reports:', err)
-      if (mounted) {
-        setIsLoading(false)
-      }
-    })
-    return () => { mounted = false }
+    try {
+      const items = await reportsService.list({ limit: 100, offset: 0 })
+      setRows(items)
+    } catch (e) {
+      console.error('Failed to fetch reports:', e)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
-  const onResolve = async (id: string, status: 'resolved' | 'dismissed', note?: string) => {
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const onBlockUser = async (userId: string) => {
+    if (
+      !window.confirm(
+        `Block user #${userId}? Their account status will be set to blocked.`,
+      )
+    ) {
+      return
+    }
     try {
-      await reportsService.resolveReport(id, status, note)
-      // Update local state to reflect the change
-      setRows(prev => prev.map(r => r.id === id ? { ...r, status } : r))
-    } catch (err) {
-      console.error('Failed to resolve report:', err)
-      alert('Failed to update report status')
+      await usersService.moderateUser(userId, 'blocked')
+      await load()
+    } catch (e) {
+      const msg =
+        e instanceof ApiRequestError ? e.message : 'Failed to block user'
+      window.alert(String(msg))
     }
   }
 
-  return { state, setState, rows, isLoading, onResolve }
+  return { rows, isLoading, onBlockUser }
 }

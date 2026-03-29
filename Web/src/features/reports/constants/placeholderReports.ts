@@ -1,22 +1,26 @@
 import type { Report } from '@/types'
 
+/** Demo rows only — real admin UI loads from GET /admin/reports */
 export const PLACEHOLDER_REPORTS: Report[] = [
   {
-    id: 'rep-1',
-    name: 'Revenue — Q1',
-    generatedAt: '2026-03-01T10:00:00.000Z',
-    format: 'pdf',
+    id: '1',
+    status: 'pending',
+    reason_code: 'seller',
+    reason_text: 'Example description',
+    target_type: 'user',
+    target_id: '42',
+    reporter_user_id: 7,
+    created_at: '2026-03-01T10:00:00.000Z',
   },
   {
-    id: 'rep-2',
-    name: 'User churn',
-    generatedAt: '2026-03-15T14:30:00.000Z',
-    format: 'csv',
-  },
-  {
-    id: 'rep-3',
-    name: 'Listing inventory',
-    generatedAt: '2026-03-20T09:15:00.000Z',
-    format: 'xlsx',
+    id: '2',
+    status: 'resolved',
+    reason_code: 'spam',
+    reason_text: 'Another example',
+    target_type: 'listing',
+    target_id: '99',
+    reporter_user_id: 8,
+    created_at: '2026-03-15T14:30:00.000Z',
+    resolution_note: 'Reviewed',
   },
 ]
