@@ -203,6 +203,18 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get commonAdd;
 
+  /// No description provided for @commonSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSave;
+
+  /// No description provided for @commonClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get commonClear;
+
   /// No description provided for @profileInvalidAmount.
   ///
   /// In en, this message translates to:
@@ -256,6 +268,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top up balance'**
   String get profileTopUpBalance;
+
+  /// No description provided for @profilePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get profilePhoneNumber;
+
+  /// No description provided for @profilePhoneNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profilePhoneNotSet;
+
+  /// No description provided for @profilePhoneEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit phone number'**
+  String get profilePhoneEditTitle;
+
+  /// No description provided for @profilePhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+1 555 123 4567'**
+  String get profilePhoneHint;
+
+  /// No description provided for @profileInvalidPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number'**
+  String get profileInvalidPhone;
 
   /// No description provided for @profileMyListings.
   ///

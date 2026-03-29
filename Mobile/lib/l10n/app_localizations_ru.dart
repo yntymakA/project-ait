@@ -63,6 +63,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonAdd => 'Добавить';
 
   @override
+  String get commonSave => 'Сохранить';
+
+  @override
+  String get commonClear => 'Очистить';
+
+  @override
   String get profileInvalidAmount => 'Введите корректную сумму';
 
   @override
@@ -90,6 +96,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileTopUpBalance => 'Пополнить баланс';
+
+  @override
+  String get profilePhoneNumber => 'Номер телефона';
+
+  @override
+  String get profilePhoneNotSet => 'Не указан';
+
+  @override
+  String get profilePhoneEditTitle => 'Изменить номер телефона';
+
+  @override
+  String get profilePhoneHint => '+996 555 123 456';
+
+  @override
+  String get profileInvalidPhone => 'Введите корректный номер телефона';
 
   @override
   String get profileMyListings => 'Мои объявления';

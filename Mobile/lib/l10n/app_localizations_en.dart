@@ -63,6 +63,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonAdd => 'Add';
 
   @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonClear => 'Clear';
+
+  @override
   String get profileInvalidAmount => 'Enter a valid amount';
 
   @override
@@ -90,6 +96,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileTopUpBalance => 'Top up balance';
+
+  @override
+  String get profilePhoneNumber => 'Phone number';
+
+  @override
+  String get profilePhoneNotSet => 'Not set';
+
+  @override
+  String get profilePhoneEditTitle => 'Edit phone number';
+
+  @override
+  String get profilePhoneHint => '+1 555 123 4567';
+
+  @override
+  String get profileInvalidPhone => 'Enter a valid phone number';
 
   @override
   String get profileMyListings => 'My listings';
