@@ -90,5 +90,57 @@ class ListingRepository {
     );
     return Listing.fromJson(response.data as Map<String, dynamic>);
   }
+
+  /// Authenticated: current user's listings (all moderation states).
+  Future<PaginatedResponse<Listing>> getMyListings({
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    final response = await _dio.get(
+      '/listings/me',
+      queryParameters: {
+        'page': page,
+        'page_size': pageSize,
+      },
+    );
+    return PaginatedResponse<Listing>.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => Listing.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  /// PATCH — update text fields and optional map pin (images unchanged).
+  Future<Listing> updateListing({
+    required int id,
+    String? title,
+    String? description,
+    double? price,
+    String? currency,
+    String? city,
+    int? categoryId,
+    bool? isNegotiable,
+    double? latitude,
+    double? longitude,
+    bool clearCoordinates = false,
+  }) async {
+    final data = <String, dynamic>{};
+    if (title != null) data['title'] = title;
+    if (description != null) data['description'] = description;
+    if (price != null) data['price'] = price;
+    if (currency != null) data['currency'] = currency;
+    if (city != null) data['city'] = city;
+    if (categoryId != null) data['category_id'] = categoryId;
+    if (isNegotiable != null) data['is_negotiable'] = isNegotiable;
+    if (clearCoordinates) {
+      data['latitude'] = null;
+      data['longitude'] = null;
+    } else if (latitude != null && longitude != null) {
+      data['latitude'] = latitude;
+      data['longitude'] = longitude;
+    }
+
+    final response = await _dio.patch('/listings/$id', data: data);
+    return Listing.fromJson(response.data as Map<String, dynamic>);
+  }
 }
 

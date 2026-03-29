@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, status
-from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.listing import ListingCreate, ListingUpdate, ListingResponse
@@ -65,6 +64,20 @@ def create_listing(
     )
     files = [f for f in [image1, image2, image3] if f is not None]
     return listing_service.create_listing(db, current_user, data, files)
+
+
+@router.get("/me", response_model=PaginatedResponse[ListingResponse])
+def get_my_listings(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Paginated listings owned by the authenticated user (all moderation states, non-deleted)."""
+    total, items = listing_repo.get_listings_by_owner_paginated(
+        db, current_user.id, page=page, page_size=page_size
+    )
+    return create_paginated_response(items, total, page, page_size)
 
 
 @router.get("/{listing_id}", response_model=ListingResponse)

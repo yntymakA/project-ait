@@ -35,6 +35,23 @@ def update_listing(db: Session, listing: Listing, update_data: dict) -> Listing:
 def get_listings_by_owner(db: Session, owner_id: int, skip: int = 0, limit: int = 20) -> list[Listing]:
     return db.query(Listing).filter(Listing.owner_id == owner_id, Listing.deleted_at == None).offset(skip).limit(limit).all()
 
+
+def get_listings_by_owner_paginated(
+    db: Session, owner_id: int, page: int = 1, page_size: int = 20
+) -> tuple[int, list[Listing]]:
+    """Non-deleted listings for an owner, newest first, with images eager-loaded."""
+    from sqlalchemy.orm import selectinload
+
+    q = (
+        db.query(Listing)
+        .options(selectinload(Listing.images))
+        .filter(Listing.owner_id == owner_id, Listing.deleted_at == None)
+    )
+    total = q.count()
+    skip = (page - 1) * page_size
+    items = q.order_by(Listing.created_at.desc()).offset(skip).limit(page_size).all()
+    return total, items
+
 def count_listings(db: Session, moderation_status: ModerationStatusEnum = None) -> int:
     query = db.query(func.count(Listing.id)).filter(Listing.deleted_at == None)
     if moderation_status:

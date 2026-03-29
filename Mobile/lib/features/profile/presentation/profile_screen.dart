@@ -69,7 +69,13 @@ class ProfileScreen extends ConsumerWidget {
             leading: const Icon(Icons.list_alt_outlined),
             title: const Text('My Listings'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () {
+              if (user == null) {
+                context.push('/login');
+              } else {
+                context.push('/my-listings');
+              }
+            },
           ),
           const Divider(height: 1),
           ListTile(
