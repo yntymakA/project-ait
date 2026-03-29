@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, Query, status, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
 from app.core.dependencies import get_db, get_current_user
 from app.models.sql_models.user import User
 from app.schemas.conversation import ConversationCreate, ConversationResponse, ConversationListResponse
-from app.schemas.message import MessageResponse, MessageListResponse
+from app.schemas.message import MessageResponse, MessageListResponse, MessageCreate
 from app.services.conversation import conversation_service
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
@@ -42,10 +41,9 @@ def get_messages(
 @router.post("/{conversation_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 def send_message(
     conversation_id: int,
-    text_body: Optional[str] = Form(None),
-    files: Optional[List[UploadFile]] = File(None),
+    body: MessageCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    """Send a message (text and/or attachments) in a conversation."""
-    return conversation_service.send_message(db, user, conversation_id, text_body, files)
+    """Send a text-only message in a conversation."""
+    return conversation_service.send_message(db, user, conversation_id, body.text_body)

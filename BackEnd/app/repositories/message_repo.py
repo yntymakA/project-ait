@@ -34,8 +34,7 @@ def add_message_attachment(db: Session, message_id: int, file_name: str, origina
 def get_conversation_messages(db: Session, conversation_id: int, skip: int = 0, limit: int = 50) -> tuple[int, list[Message]]:
     base_query = db.query(Message).filter(Message.conversation_id == conversation_id, Message.deleted_at == None)
     total = base_query.count()
-    items = base_query.order_by(Message.sent_at.desc()).offset(skip).limit(limit).all()
-    # Reverse so items are chronological if needed, but returning desc is better for pagination of chat history
+    items = base_query.order_by(Message.sent_at.asc()).offset(skip).limit(limit).all()
     return total, items
 
 def count_unread_messages(db: Session, conversation_id: int, user_id: int) -> int:

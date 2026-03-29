@@ -11,6 +11,7 @@ import '../providers/listing_providers.dart';
 import '../../favorites/providers/favorite_providers.dart';
 import '../../profile/providers/profile_public_providers.dart';
 import '../../reports/providers/report_providers.dart';
+import '../../profile/providers/me_profile_provider.dart';
 import '../../../core/maps/listing_map_preview.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -347,8 +348,43 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               Expanded(
                 child: AppButton(
                   label: 'Chat',
-                  onPressed: () {
-                    // Navigate to chat
+                  onPressed: () async {
+                    final firebaseUser = ref.read(currentUserProvider);
+                    if (firebaseUser == null) {
+                      context.push('/login');
+                      return;
+                    }
+                    try {
+                      final me = await ref.read(currentMeProvider.future);
+                      if (!context.mounted) return;
+                      if (me == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Не удалось загрузить профиль'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+                      if (me.id == listing.ownerId) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Это ваше объявление'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+                      context.push('/listing/${listing.id}/chat', extra: listing);
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Не удалось открыть чат'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
                   },
                 ),
               ),

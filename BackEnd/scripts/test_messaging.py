@@ -88,29 +88,27 @@ def test_messaging():
 
     print("\n4. Buyer sends a text message...")
     data_msg = {"text_body": "Hi! Is this property still available for sale?"}
-    r_msg1 = requests.post(f"{API_BASE_URL}/conversations/{conv_id}/messages", headers=h_buyer, data=data_msg)
+    r_msg1 = requests.post(
+        f"{API_BASE_URL}/conversations/{conv_id}/messages",
+        headers=h_buyer,
+        json=data_msg,
+    )
     if r_msg1.status_code == 201:
         print("✅ Text message sent!")
     else:
         print(f"❌ Failed to send message: {r_msg1.text}")
 
-    print("\n5. Buyer sends an image attachment...")
-    tmp_img = "/tmp/test_chat_image.jpg"
-    with open(tmp_img, "wb") as f:
-        f.write(requests.get("https://picsum.photos/400/300").content)
-        
+    print("\n5. Buyer sends a second text message...")
     r_msg2 = requests.post(
-        f"{API_BASE_URL}/conversations/{conv_id}/messages", 
-        headers=h_buyer, 
-        data={"text_body": "Can you check if it looks like this picture?"},
-        files=[("files", ("house_reference.jpg", open(tmp_img, "rb"), "image/jpeg"))]
+        f"{API_BASE_URL}/conversations/{conv_id}/messages",
+        headers=h_buyer,
+        json={"text_body": "Could we schedule a viewing this week?"},
     )
     if r_msg2.status_code == 201:
-        print("✅ Message with attachment sent!")
+        print("✅ Second text message sent!")
     else:
-        print(f"❌ Failed to send attachment: {r_msg2.text}")
-    os.remove(tmp_img)
-    
+        print(f"❌ Failed to send second message: {r_msg2.text}")
+
     print("\n6. Seller checks their inbox...")
     r_inbox = requests.get(f"{API_BASE_URL}/conversations", headers=h_seller)
     inbox = r_inbox.json()["items"]
@@ -125,9 +123,8 @@ def test_messaging():
     history = r_hist.json()["items"]
     print(f"✅ Loaded {len(history)} messages.")
     for m in history:
-        att_str = f" [Attachment: {m['attachments'][0]['file_url']}]" if m['attachments'] else ""
         sender = "Buyer" if m['sender_id'] == buyer_id else "Seller"
-        print(f"   [{sender}] {m['text_body']}{att_str}")
+        print(f"   [{sender}] {m['text_body']}")
         
     print("\n8. Seller checks inbox again to ensure unread count reset to 0...")
     r_inbox2 = requests.get(f"{API_BASE_URL}/conversations", headers=h_seller)
@@ -139,9 +136,9 @@ def test_messaging():
 
     print("\n9. Seller replies...")
     r_reply = requests.post(
-        f"{API_BASE_URL}/conversations/{conv_id}/messages", 
-        headers=h_seller, 
-        data={"text_body": "Yes, it is! Let me know if you want to schedule a viewing."}
+        f"{API_BASE_URL}/conversations/{conv_id}/messages",
+        headers=h_seller,
+        json={"text_body": "Yes, it is! Let me know if you want to schedule a viewing."},
     )
     if r_reply.status_code == 201:
         print("✅ Reply sent!")

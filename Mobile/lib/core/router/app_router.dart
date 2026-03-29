@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'main_shell.dart';
 import '../../features/listings/presentation/feed_screen.dart';
 import '../../features/listings/presentation/listing_detail_screen.dart';
+import '../../features/conversations/presentation/listing_chat_screen.dart';
 import '../../features/listings/data/models/listing.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/create/presentation/create_screen.dart';
@@ -38,11 +39,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loggedIn = authState.value != null;
       final loggingIn = state.uri.toString() == '/login' || state.uri.toString() == '/register';
 
+      final path = state.uri.path;
+      final isListingChat = path.startsWith('/listing/') && path.endsWith('/chat');
       final requiresAuth = state.uri.toString().startsWith('/inbox') ||
                            state.uri.toString().startsWith('/create') ||
                            state.uri.toString().startsWith('/favorites') ||
                            state.uri.toString().startsWith('/my-listings') ||
-                           state.uri.toString().startsWith('/edit-listing');
+                           state.uri.toString().startsWith('/edit-listing') ||
+                           isListingChat;
 
       if (requiresAuth && !loggedIn) {
         return '/login';
@@ -69,6 +73,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
     
+    // Listing chat (more specific than /listing/:id)
+    GoRoute(
+      path: '/listing/:id/chat',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final idStr = state.pathParameters['id']!;
+        final id = int.tryParse(idStr) ?? 0;
+        final listing = state.extra as Listing?;
+        return ListingChatScreen(listingId: id, listing: listing);
+      },
+    ),
     // Listing Details (Root level to hide bottom nav)
     GoRoute(
       path: '/listing/:id',

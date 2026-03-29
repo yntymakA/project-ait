@@ -1,8 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional, List
 from builtins import int
 from app.models.enums import MessageTypeEnum
+
+
+class MessageCreate(BaseModel):
+    text_body: str = Field(..., min_length=1, max_length=8000)
 
 class MessageAttachmentResponse(BaseModel):
     id: int
