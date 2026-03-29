@@ -6,13 +6,13 @@
 
 .list {
   margin: 0;
-  padding-left: 1.1rem;
+  padding-left: 1rem;
   color: var(--color-muted);
   font-size: 0.9375rem;
 }
 
 .list li + li {
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
 }
 
 .emphasis {

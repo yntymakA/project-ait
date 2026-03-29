@@ -13,7 +13,11 @@ const items = [
 export function Sidebar() {
   return (
     <aside className={styles.aside}>
-      <nav aria-label="Primary">
+      <div className={styles.brandBlock}>
+        <span className={styles.brandEyebrow}>Marketplace</span>
+        <strong className={styles.brandTitle}>Admin Console</strong>
+      </div>
+      <nav aria-label="Primary" className={styles.nav}>
         {items.map((item) => (
           <NavLink
             key={item.to}
@@ -23,6 +27,7 @@ export function Sidebar() {
               [styles.link, isActive ? styles.linkActive : ''].filter(Boolean).join(' ')
             }
           >
+            <span className={styles.linkMarker} aria-hidden="true" />
             {item.label}
           </NavLink>
         ))}

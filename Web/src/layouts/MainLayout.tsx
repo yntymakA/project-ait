@@ -22,7 +22,12 @@ export function MainLayout() {
       <Sidebar />
       <Header />
       <main className={styles.main}>
-        <h1 className={styles.pageTitle}>{pageTitle}</h1>
+        <div className={styles.pageHeader}>
+          <div>
+            <p className={styles.sectionLabel}>Admin panel</p>
+            <h1 className={styles.pageTitle}>{pageTitle}</h1>
+          </div>
+        </div>
         <Outlet />
       </main>
     </div>

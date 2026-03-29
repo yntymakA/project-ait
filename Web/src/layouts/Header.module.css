@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   gap: 1rem;
@@ -12,13 +12,39 @@
 .brand {
   font-weight: 700;
   font-size: 0.95rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
 }
 
 .right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.userMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .user {
@@ -28,4 +54,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+@media (max-width: 900px) {
+  .header {
+    padding: 0.9rem 1rem;
+  }
 }
