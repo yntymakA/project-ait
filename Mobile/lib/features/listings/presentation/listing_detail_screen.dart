@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../data/models/listing.dart';
 import '../providers/listing_providers.dart';
 import '../../favorites/providers/favorite_providers.dart';
+import '../../profile/providers/profile_public_providers.dart';
 import '../../../core/maps/listing_map_preview.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -271,6 +273,10 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     style: AppTextStyles.bodyLarge.copyWith(height: 1.5),
                   ),
                   const SizedBox(height: AppSpacing.xl),
+                  Text('Seller', style: AppTextStyles.titleLarge),
+                  const SizedBox(height: AppSpacing.sm),
+                  _SellerPreviewRow(ownerId: listing.ownerId),
+                  const SizedBox(height: AppSpacing.xl),
                 ],
               ),
             ),
@@ -317,6 +323,89 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerPreviewRow extends ConsumerWidget {
+  final int ownerId;
+
+  const _SellerPreviewRow({required this.ownerId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(publicProfileProvider(ownerId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: LinearProgressIndicator(minHeight: 2),
+      ),
+      error: (e, st) => const SizedBox.shrink(),
+      data: (profile) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppSpacing.rounded,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/users/$ownerId'),
+            borderRadius: AppSpacing.rounded,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.grey200,
+                    backgroundImage:
+                        profile.profileImageUrl != null &&
+                                profile.profileImageUrl!.isNotEmpty
+                            ? CachedNetworkImageProvider(profile.profileImageUrl!)
+                            : null,
+                    child: profile.profileImageUrl == null ||
+                            profile.profileImageUrl!.isEmpty
+                        ? Text(
+                            profile.fullName.isNotEmpty
+                                ? profile.fullName[0].toUpperCase()
+                                : '?',
+                            style: AppTextStyles.titleLarge.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile.fullName,
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'View profile and listings',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.grey500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.grey400,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

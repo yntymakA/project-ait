@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
+
 from app.models.enums import RoleEnum, UserStatusEnum
+from app.schemas.listing import ListingResponse
 
 class UserBase(BaseModel):
     full_name: str
@@ -48,3 +50,12 @@ class PublicUserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserPublicListingsResponse(BaseModel):
+    """Paginated approved listings for a seller — full [ListingResponse] with images."""
+
+    items: List[ListingResponse]
+    total: int
+    limit: int
+    offset: int

@@ -4,8 +4,13 @@ from typing import Annotated
 
 from app.core.dependencies import get_db, get_current_user
 from app.core.security import get_current_firebase_uid
-from app.schemas.user import UserResponse, UserSyncResponse, UserUpdate, PublicUserResponse
-from app.schemas.listing import ListingResponse
+from app.schemas.user import (
+    UserResponse,
+    UserSyncResponse,
+    UserUpdate,
+    PublicUserResponse,
+    UserPublicListingsResponse,
+)
 from app.services.user import user_service
 from app.services.storage import upload_service
 from app.repositories import user_repo
@@ -82,7 +87,11 @@ def get_public_profile(user_id: int, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/public/{user_id}/listings", summary="Seller's listings")
+@router.get(
+    "/public/{user_id}/listings",
+    response_model=UserPublicListingsResponse,
+    summary="Seller's listings",
+)
 def get_user_listings(
     user_id: int,
     limit: int = Query(20, ge=1, le=100),
@@ -93,6 +102,6 @@ def get_user_listings(
     user = user_repo.get_user(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     total, items = user_repo.get_user_listings(db, user_id, skip=offset, limit=limit)
     return {"items": items, "total": total, "limit": limit, "offset": offset}

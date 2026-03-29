@@ -9,6 +9,7 @@ import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/create/presentation/create_screen.dart';
 import '../../features/conversations/presentation/inbox_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/seller_profile_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
@@ -73,6 +74,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         final id = int.tryParse(idStr) ?? 0;
         final listing = state.extra as Listing?;
         return ListingDetailScreen(listingId: id, listing: listing);
+      },
+    ),
+    GoRoute(
+      path: '/users/:userId',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final idStr = state.pathParameters['userId']!;
+        final id = int.tryParse(idStr) ?? 0;
+        return SellerProfileScreen(userId: id);
       },
     ),
     

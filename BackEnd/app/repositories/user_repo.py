@@ -56,9 +56,12 @@ def count_active_listings(db: Session, user_id: int) -> int:
 
 
 def get_user_listings(db: Session, user_id: int, skip: int = 0, limit: int = 20):
+    from sqlalchemy.orm import selectinload
+
     from app.models.sql_models.listing import Listing
     from app.models.enums import ModerationStatusEnum
-    query = db.query(Listing).filter(
+
+    query = db.query(Listing).options(selectinload(Listing.images)).filter(
         Listing.owner_id == user_id,
         Listing.moderation_status == ModerationStatusEnum.approved,
         Listing.deleted_at == None,
@@ -66,6 +69,8 @@ def get_user_listings(db: Session, user_id: int, skip: int = 0, limit: int = 20)
     total = query.count()
     items = query.order_by(Listing.created_at.desc()).offset(skip).limit(limit).all()
     return total, items
+
+
 def get_users_list(db: Session, skip: int = 0, limit: int = 20):
     query = db.query(User)
     total = query.count()
