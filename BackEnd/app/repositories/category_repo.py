@@ -21,3 +21,30 @@ def create_category(db: Session, category_data: dict) -> Category:
     db.commit()
     db.refresh(db_obj)
     return db_obj
+
+
+def get_direct_children(db: Session, parent_id: int) -> list[Category]:
+    return db.query(Category).filter(Category.parent_id == parent_id).all()
+
+
+def deactivate_category_and_descendants(db: Session, category_id: int) -> int:
+    to_process = [category_id]
+    visited: set[int] = set()
+    deactivated_count = 0
+
+    while to_process:
+        current_id = to_process.pop()
+        if current_id in visited:
+            continue
+        visited.add(current_id)
+
+        category = db.query(Category).filter(Category.id == current_id).first()
+        if category is not None and category.is_active:
+            category.is_active = False
+            deactivated_count += 1
+
+        children = get_direct_children(db, current_id)
+        to_process.extend(child.id for child in children)
+
+    db.commit()
+    return deactivated_count

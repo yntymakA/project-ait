@@ -53,3 +53,23 @@
   color: #b91c1c;
   font-size: 0.875rem;
 }
+
+.dangerButton {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #ef4444;
+  border-radius: 0.375rem;
+  background: #fff5f5;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.dangerButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

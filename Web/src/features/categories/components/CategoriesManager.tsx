@@ -37,6 +37,7 @@ function flattenTree(nodes: CategoryTreeResponse[], parentName = ''): FlatCatego
 
 export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deactivatingId, setDeactivatingId] = useState<number | null>(null)
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -91,6 +92,27 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
     }
   }
 
+  const handleDeactivate = async (row: FlatCategoryRow) => {
+    if (deactivatingId != null) return
+    const confirmed = window.confirm(`Deactivate category "${row.name}"?`)
+    if (!confirmed) return
+
+    setFeedback(null)
+    setIsError(false)
+    try {
+      setDeactivatingId(row.id)
+      const result = await categoriesService.deactivate(row.id)
+      setFeedback(`Category deactivated. Affected: ${result.deactivated_count}`)
+      await onCategoryAdded()
+    } catch (err) {
+      console.error(err)
+      setIsError(true)
+      setFeedback(err instanceof Error ? err.message : 'Failed to deactivate category')
+    } finally {
+      setDeactivatingId(null)
+    }
+  }
+
   const columns: TableColumn<FlatCategoryRow>[] = [
     { id: 'id', header: 'ID', accessor: 'id' },
     { id: 'name', header: 'Name', accessor: 'name' },
@@ -98,6 +120,20 @@ export function CategoriesManager({ tree, onCategoryAdded }: CategoriesManagerPr
     { id: 'parentName', header: 'Parent', accessor: 'parentName' },
     { id: 'display_order', header: 'Order', accessor: 'display_order' },
     { id: 'is_active', header: 'Active', cell: (row) => row.is_active ? 'Yes' : 'No' },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: (row) => (
+        <button
+          type="button"
+          className={styles.dangerButton}
+          disabled={deactivatingId === row.id}
+          onClick={() => void handleDeactivate(row)}
+        >
+          {deactivatingId === row.id ? 'Deactivating...' : 'Deactivate'}
+        </button>
+      ),
+    },
   ]
 
   return (

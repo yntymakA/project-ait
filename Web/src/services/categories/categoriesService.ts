@@ -26,4 +26,9 @@ export const categoriesService = {
       body: JSON.stringify(data),
     })
   },
+  deactivate: async (categoryId: number): Promise<{ ok: boolean; deactivated_count: number }> => {
+    return apiFetch<{ ok: boolean; deactivated_count: number }>(`/categories/${categoryId}/deactivate`, {
+      method: 'PATCH',
+    })
+  },
 }

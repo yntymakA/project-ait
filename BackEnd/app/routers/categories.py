@@ -25,3 +25,13 @@ def create_category(
     Create a new category. Requires admin privileges.
     """
     return category_service.create_category(db, current_user, data)
+
+
+@router.patch("/{category_id}/deactivate")
+def deactivate_category(
+    category_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deactivate a category (and its descendants). Requires admin privileges."""
+    return category_service.deactivate_category(db, current_user, category_id)
