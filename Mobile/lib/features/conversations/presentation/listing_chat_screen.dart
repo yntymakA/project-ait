@@ -18,10 +18,14 @@ class ListingChatScreen extends ConsumerStatefulWidget {
   final int listingId;
   final Listing? listing;
 
+  /// When set (e.g. opened from inbox), loads this thread instead of starting one.
+  final int? initialConversationId;
+
   const ListingChatScreen({
     super.key,
     required this.listingId,
     this.listing,
+    this.initialConversationId,
   });
 
   @override
@@ -60,14 +64,20 @@ class _ListingChatScreenState extends ConsumerState<ListingChatScreen> {
     });
     try {
       final repo = ref.read(conversationRepositoryProvider);
-      final conv = await repo.startConversation(
-        listingId: listing.id,
-        recipientId: listing.ownerId,
-      );
-      final msgs = await repo.getMessages(conv.id);
+      final int convId;
+      if (widget.initialConversationId != null) {
+        convId = widget.initialConversationId!;
+      } else {
+        final conv = await repo.startConversation(
+          listingId: listing.id,
+          recipientId: listing.ownerId,
+        );
+        convId = conv.id;
+      }
+      final msgs = await repo.getMessages(convId);
       if (!mounted) return;
       setState(() {
-        _conversationId = conv.id;
+        _conversationId = convId;
         _messages = msgs;
         _loading = false;
       });
@@ -164,7 +174,7 @@ class _ListingChatScreenState extends ConsumerState<ListingChatScreen> {
                 body: const Center(child: Text('Войдите, чтобы писать в чате')),
               );
             }
-            if (me.id == listing.ownerId) {
+            if (me.id == listing.ownerId && widget.initialConversationId == null) {
               return Scaffold(
                 appBar: AppBar(title: const Text('Чат')),
                 body: const Center(

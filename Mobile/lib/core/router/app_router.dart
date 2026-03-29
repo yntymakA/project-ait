@@ -81,7 +81,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         final idStr = state.pathParameters['id']!;
         final id = int.tryParse(idStr) ?? 0;
         final listing = state.extra as Listing?;
-        return ListingChatScreen(listingId: id, listing: listing);
+        final convParam = state.uri.queryParameters['conversationId'];
+        final initialConversationId =
+            convParam != null ? int.tryParse(convParam) : null;
+        return ListingChatScreen(
+          listingId: id,
+          listing: listing,
+          initialConversationId: initialConversationId,
+        );
       },
     ),
     // Listing Details (Root level to hide bottom nav)

@@ -22,6 +22,17 @@ class ConversationRepository {
     return ConversationDto.fromJson(res.data!);
   }
 
+  Future<ConversationListPage> listConversations({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/conversations',
+      queryParameters: {'limit': limit, 'offset': offset},
+    );
+    return ConversationListPage.fromJson(res.data!);
+  }
+
   Future<List<ChatMessage>> getMessages(int conversationId) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/conversations/$conversationId/messages',
