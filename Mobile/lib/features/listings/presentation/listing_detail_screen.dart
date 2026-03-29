@@ -1,13 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/auth/auth_provider.dart';
 import '../data/models/listing.dart';
 import '../providers/listing_providers.dart';
 import '../../favorites/providers/favorite_providers.dart';
 import '../../profile/providers/profile_public_providers.dart';
+import '../../reports/providers/report_providers.dart';
 import '../../../core/maps/listing_map_preview.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -31,6 +34,18 @@ class ListingDetailScreen extends ConsumerStatefulWidget {
 class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   final PageController _pageController = PageController();
   int _currentImageIndex = 0;
+
+  void _openReportSellerDialog(int ownerId) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      context.push('/login');
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => _ReportSellerDialog(ownerId: ownerId),
+    );
+  }
 
   @override
   void dispose() {
@@ -276,6 +291,21 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                   Text('Seller', style: AppTextStyles.titleLarge),
                   const SizedBox(height: AppSpacing.sm),
                   _SellerPreviewRow(ownerId: listing.ownerId),
+                  const SizedBox(height: AppSpacing.md),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => _openReportSellerDialog(listing.ownerId),
+                      icon: const Icon(Icons.flag_outlined, size: 18),
+                      label: const Text('Пожаловаться на этого продавца'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.grey600,
+                        textStyle: AppTextStyles.bodyMedium.copyWith(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                 ],
               ),
@@ -409,6 +439,115 @@ class _SellerPreviewRow extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ReportSellerDialog extends ConsumerStatefulWidget {
+  final int ownerId;
+
+  const _ReportSellerDialog({required this.ownerId});
+
+  @override
+  ConsumerState<_ReportSellerDialog> createState() => _ReportSellerDialogState();
+}
+
+class _ReportSellerDialogState extends ConsumerState<_ReportSellerDialog> {
+  final _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _submitting = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() => _submitting = true);
+    try {
+      await ref.read(reportRepositoryProvider).submitUserReport(
+            targetUserId: widget.ownerId,
+            reasonText: _controller.text.trim(),
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Жалоба отправлена'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final detail = e.response?.data;
+      final msg = detail is Map && detail['detail'] != null
+          ? detail['detail'].toString()
+          : (e.message ?? 'Не удалось отправить жалобу');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Не удалось отправить жалобу'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Жалоба на продавца'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: TextFormField(
+            controller: _controller,
+            maxLines: 5,
+            maxLength: 2000,
+            decoration: const InputDecoration(
+              labelText: 'Опишите причину',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder(),
+            ),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Введите описание';
+              }
+              return null;
+            },
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+          child: const Text('Отмена'),
+        ),
+        FilledButton(
+          onPressed: _submitting ? null : _submit,
+          child: _submitting
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Отправить'),
+        ),
+      ],
     );
   }
 }
