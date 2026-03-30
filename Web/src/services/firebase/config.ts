@@ -1,7 +1,7 @@
 function requiredEnv(name: keyof ImportMetaEnv): string {
   const value = import.meta.env[name]
   if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`Missing ${String(name)}. Copy Web/.env.example to Web/.env and fill Firebase + API values.`)
+    throw new Error(`Missing ${String(name)}. Fill Firebase + API values in Web/.env.`)
   }
   return value
 }

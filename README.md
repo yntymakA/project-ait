@@ -5,7 +5,6 @@
 Из корня проекта:
 
 ```bash
-cp .env.example .env
 docker compose up --build
 ```
 
@@ -40,7 +39,6 @@ docker compose up --build
 Для проверки через Docker учителю достаточно:
 
 ```bash
-cp .env.example .env
 docker compose up --build
 ```
 
