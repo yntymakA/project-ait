@@ -19,6 +19,7 @@ docker compose up --build
 
 - backend ждёт готовности MySQL;
 - Alembic автоматически делает `upgrade head`;
+- при старте backend создаёт или обновляет admin-пользователя `tashmat@gmail.com`;
 - web собирается в production внутри Docker.
 
 Полезные ссылки:

@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-password}
       DB_NAME: ${DB_NAME:-marketplace}
       DATABASE_URL: mysql+pymysql://${DB_USER:-marketplace_user}:${DB_PASSWORD:-password}@db:3306/${DB_NAME:-marketplace}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-tashmat@gmail.com}
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-dev}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-marketplace-ait}
       FIREBASE_STORAGE_BUCKET: ${FIREBASE_STORAGE_BUCKET:-marketplace-ait.firebasestorage.app}

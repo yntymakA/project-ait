@@ -10,5 +10,8 @@ done
 echo "Running database migrations..."
 alembic upgrade head
 
+echo "Bootstrapping admin user..."
+python scripts/bootstrap_admin.py
+
 echo "Starting API..."
 exec "$@"
