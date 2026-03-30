@@ -35,13 +35,7 @@ docker compose down -v
 docker compose up --build
 ```
 
-## Env files
 
-Файлы окружения, которые реально используются:
-
-- [`.env.example`](/Users/main/Desktop/project%20ait/.env.example) — основной env для `docker compose` из корня проекта.
-- [`BackEnd/.env.example`](/Users/main/Desktop/project%20ait/BackEnd/.env.example) — env для локального запуска backend без Docker.
-- [`Web/.env.example`](/Users/main/Desktop/project%20ait/Web/.env.example) — env для локального запуска web без Docker.
 
 Для проверки через Docker учителю достаточно:
 
