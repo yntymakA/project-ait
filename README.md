@@ -75,3 +75,6 @@ flutter run --dart-define=API_URL=http://10.0.2.2:8000
 ## Firebase note
 
 Если файла `BackEnd/firebase-admin.json` нет, базовый запуск контейнеров всё равно работает. Он нужен только для Firebase Admin функций вроде server-side storage/messaging.
+
+## Видео с обзором проекта:
+https://youtu.be/09bQ6Cgejsk

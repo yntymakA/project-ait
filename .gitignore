@@ -11,9 +11,6 @@
 Thumbs.db
 
 # Environment
-.env
-.env.local
-.env.*.local
 
 # Dependencies
 node_modules/
@@ -34,7 +31,6 @@ npm-debug.log*
 # Python
 venv/
 .venv/
-env/
 .pytest_cache/
 htmlcov/
 .coverage
